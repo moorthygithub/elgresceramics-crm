@@ -1,0 +1,31 @@
+[
+  {
+    "title": "Dashboard",
+    "href": "/home"
+  },
+  {
+    "title": "User Management",
+    "href": "/userManagement"
+  },
+  {
+    "title": "User Management",
+    "href": "/userManagement"
+  },
+  {
+    "title": "Contract",
+    "href": "/contract"
+  },
+  {
+    "title": "Invoice",
+    "href": "/invoice"
+  },
+  {
+    "title": "Master",
+    "subItems": [
+      {
+        "title": "Branch",
+        "href": "/master/branch"
+      }
+    ]
+  }
+]
