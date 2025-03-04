@@ -17,6 +17,7 @@ import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
 import SessionTimeoutTracker from "./components/SessionTimeoutTracker/SessionTimeoutTracker";
 import DisabledRightClick from "./components/common/DisabledRightClick";
 import SalesView from "./app/sales/SalesView";
+import Maintenance from "./components/common/Maintenance";
 
 function App() {
   const navigate = useNavigate();
@@ -27,13 +28,14 @@ function App() {
   };
   return (
     <>
-      {/* <DisabledRightClick /> */}
+      <DisabledRightClick />
       <Toaster />
       <SessionTimeoutTracker expiryTime={time} onLogout={handleLogout} />
       <Routes>
         {/* Login Page        */}
         <Route path="/" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/maintenance" element={<Maintenance />} />
         {/* Dashboard  */}
         <Route path="/home" element={<Home />} />
         {/* ----------------------Master------------------------------ */}
