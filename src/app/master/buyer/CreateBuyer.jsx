@@ -26,15 +26,26 @@ const CreateBuyer = () => {
   const queryClient = useQueryClient();
   const { pathname } = useLocation();
   const handleSubmit = async () => {
-    if (!formData.buyer_name.trim() || !formData.buyer_city.trim()) {
+    const missingFields = [];
+    if (!formData.buyer_name) missingFields.push("Buyer Name");
+    if (!formData.buyer_city) missingFields.push("Buyer City");
+    if (missingFields.length > 0) {
       toast({
-        title: "Error",
-        description: "State name and state number are required",
+        title: "Validation Error",
+        description: (
+          <div>
+            <p>Please fill in the following fields:</p>
+            <ul className="list-disc pl-5">
+              {missingFields.map((field, index) => (
+                <li key={index}>{field}</li>
+              ))}
+            </ul>
+          </div>
+        ),
         variant: "destructive",
       });
       return;
     }
-
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -64,8 +75,7 @@ const CreateBuyer = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description:
-          error.response?.data?.message || "Failed to create product",
+        description: error.response?.data?.message || "Failed to create Buyer",
         variant: "destructive",
       });
     } finally {
@@ -82,10 +92,11 @@ const CreateBuyer = () => {
           >
             <SquarePlus className="h-4 w-4 mr-2" /> Buyer
           </Button>
-        ) : pathname === "/master/purchase/create" ||
-          pathname === "/master/sales/create" ? (
+        ) : pathname === "/purchase/create" ||
+          pathname === "/dispatch/create" ||
+          "/purchase/edit" ? (
           <p className="text-xs text-red-600  w-32 hover:text-red-300 cursor-pointer">
-            Buyer
+            Buyer <span className="text-red-500 ml-1">*</span>
           </p>
         ) : (
           <span />
@@ -102,7 +113,7 @@ const CreateBuyer = () => {
           <div className="grid gap-2">
             <Input
               id="buyer_name"
-              placeholder="Enter buyer name"
+              placeholder="Enter Buyer Name"
               value={formData.buyer_name}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, buyer_name: e.target.value }))
@@ -110,7 +121,7 @@ const CreateBuyer = () => {
             />
             <Input
               id="buyer_city"
-              placeholder="Enter buyer city"
+              placeholder="Enter Buyer City"
               value={formData.buyer_city}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, buyer_city: e.target.value }))

@@ -4,6 +4,7 @@ import {
   BadgeIndianRupee,
   Blocks,
   Command,
+  File,
   Frame,
   GalleryVerticalEnd,
   Map,
@@ -11,6 +12,7 @@ import {
   ReceiptText,
   Settings,
   Settings2,
+  ShoppingBag,
   TicketPlus,
 } from "lucide-react";
 
@@ -67,32 +69,36 @@ export function AppSidebar({ ...props }) {
         icon: Settings2,
         items: [
           {
-            title: "Buyer",
-            url: "/master/buyer",
+            title: "Category",
+            url: "/master/category",
           },
           {
             title: "Item",
             url: "/master/item",
           },
           {
-            title: "Category",
-            url: "/master/category",
-          },
-          {
-            title: "Purchase",
-            url: "/master/purchase",
-          },
-          {
-            title: "Sales",
-            url: "/master/sales",
+            title: "Buyer",
+            url: "/master/buyer",
           },
         ],
+      },
+      {
+        title: "Purchase",
+        url: "/purchase",
+        icon: ShoppingBag,
+        isActive: false,
+      },
+      {
+        title: "Dispatch",
+        url: "/dispatch",
+        icon: ShoppingBag,
+        isActive: false,
       },
       {
         title: "Report",
         url: "#",
         isActive: false,
-        icon: Settings2,
+        icon: File,
         items: [
           {
             title: "Stock",

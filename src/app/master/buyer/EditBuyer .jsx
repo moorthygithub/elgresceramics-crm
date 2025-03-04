@@ -78,15 +78,26 @@ const EditBuyer = ({ buyerId }) => {
 
   // Handle form submission
   const handleSubmit = async () => {
-    if (!formData.buyer_city.trim()) {
+    const missingFields = [];
+    if (!formData.buyer_city) missingFields.push("Buyer City");
+    if (!formData.buyer_status) missingFields.push("Status");
+    if (missingFields.length > 0) {
       toast({
-        title: "Error",
-        description: "State number is required",
+        title: "Validation Error",
+        description: (
+          <div>
+            <p>Please fill in the following fields:</p>
+            <ul className="list-disc pl-5">
+              {missingFields.map((field, index) => (
+                <li key={index}>{field}</li>
+              ))}
+            </ul>
+          </div>
+        ),
         variant: "destructive",
       });
       return;
     }
-
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");

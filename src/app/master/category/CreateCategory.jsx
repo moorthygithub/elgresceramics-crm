@@ -25,15 +25,25 @@ const CreateCategory = () => {
   const queryClient = useQueryClient();
   const { pathname } = useLocation();
   const handleSubmit = async () => {
-    if (!formData.category.trim()) {
+    const missingFields = [];
+    if (!formData.category) missingFields.push("Category");
+    if (missingFields.length > 0) {
       toast({
-        title: "Error",
-        description: "Category is  required",
+        title: "Validation Error",
+        description: (
+          <div>
+            <p>Please fill in the following fields:</p>
+            <ul className="list-disc pl-5">
+              {missingFields.map((field, index) => (
+                <li key={index}>{field}</li>
+              ))}
+            </ul>
+          </div>
+        ),
         variant: "destructive",
       });
       return;
     }
-
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -81,8 +91,8 @@ const CreateCategory = () => {
           >
             <SquarePlus className="h-4 w-4 mr-2" /> Category
           </Button>
-        ) : pathname === "/master/purchase/create" ||
-          pathname === "/master/sales/create" ? (
+        ) : pathname === "/purchase/create" ||
+          pathname === "/dispatch/create" ? (
           <p className="text-xs text-red-600  w-32 hover:text-red-300 cursor-pointer">
             Category
           </p>

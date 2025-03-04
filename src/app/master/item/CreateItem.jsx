@@ -65,16 +65,25 @@ const CreateItem = () => {
     }
   };
   const handleSubmit = async () => {
-    if (
-      !formData.item_category.trim() ||
-      !formData.item_name.trim() ||
-      !formData.item_size.trim() ||
-      !formData.item_brand.trim() ||
-      !formData.item_weight.trim()
-    ) {
+    const missingFields = [];
+    if (!formData.item_category) missingFields.push("Category");
+    if (!formData.item_name) missingFields.push("Item Name");
+    if (!formData.item_size) missingFields.push("Size");
+    if (!formData.item_brand) missingFields.push("Brand");
+    if (!formData.item_weight) missingFields.push("Weight");
+    if (missingFields.length > 0) {
       toast({
-        title: "Error",
-        description: "State name and state number are required",
+        title: "Validation Error",
+        description: (
+          <div>
+            <p>Please fill in the following fields:</p>
+            <ul className="list-disc pl-5">
+              {missingFields.map((field, index) => (
+                <li key={index}>{field}</li>
+              ))}
+            </ul>
+          </div>
+        ),
         variant: "destructive",
       });
       return;
@@ -129,10 +138,11 @@ const CreateItem = () => {
           >
             <SquarePlus className="h-4 w-4 mr-2" /> Item
           </Button>
-        ) : pathname === "/master/purchase/create" ||
-          pathname === "/master/sales/create" ? (
+        ) : pathname === "/purchase/create" ||
+          pathname === "/dispatch/create" ||
+          "/purchase/edit" ? (
           <p className="text-xs text-red-600  w-32 hover:text-red-300 cursor-pointer">
-            Item
+            Item <span className="text-red-500">*</span>
           </p>
         ) : (
           <span />
@@ -155,7 +165,7 @@ const CreateItem = () => {
                 }
               >
                 <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Select Item category " />
+                  <SelectValue placeholder="Select Item Category " />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {categoryData?.category?.map((product, index) => (
@@ -168,7 +178,7 @@ const CreateItem = () => {
             </div>
             <Input
               id="item_name"
-              placeholder="Enter Item name"
+              placeholder="Enter Item Name"
               value={formData.item_name}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, item_name: e.target.value }))
@@ -176,7 +186,7 @@ const CreateItem = () => {
             />
             <Input
               id="item_size"
-              placeholder="Enter item size"
+              placeholder="Enter Item Size"
               value={formData.item_size}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, item_size: e.target.value }))
@@ -184,7 +194,7 @@ const CreateItem = () => {
             />
             <Input
               id="item_brand"
-              placeholder="Enter item brand"
+              placeholder="Enter Item Brand"
               value={formData.item_brand}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, item_brand: e.target.value }))
@@ -193,7 +203,7 @@ const CreateItem = () => {
             <Input
               type="number"
               id="item_weight"
-              placeholder="Enter item weight"
+              placeholder="Enter Item Weight"
               value={formData.item_weight}
               onChange={(e) =>
                 setFormData((prev) => ({

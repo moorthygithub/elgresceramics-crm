@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import BASE_URL from "@/config/BaseUrl";
+import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { useQuery } from "@tanstack/react-query";
 import {
   flexRender,
@@ -27,18 +28,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import axios from "axios";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Search
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, Loader2, Search } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import CreateCategory from "./CreateCategory";
-import EditCategory from "./EditCategory";
 
 const CategoryList = () => {
   const {
@@ -58,28 +53,82 @@ const CategoryList = () => {
   });
 
   // State for table management
+  const { toast } = useToast();
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-  const navigate = useNavigate();
+  const [togglingId, setTogglingId] = useState(null);
+  const [isActive, setIsActive] = useState(false);
+  const queryClient = useQueryClient();
+  const handleToggle = async (categoryId, currentStatus) => {
+    setTogglingId(categoryId);
 
-  // Define columns for the table
+    try {
+      const newStatus = currentStatus === "Active" ? "Inactive" : "Active";
+
+      await handleSubmit({ categoryId, status: newStatus }); // API call
+
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    } catch (error) {
+      console.error("Failed to update category:", error);
+    } finally {
+      setTogglingId(null); // Hide loader after API response
+    }
+  };
+
+  const handleSubmit = async ({ categoryId, status }) => {
+    if (!status) {
+      toast({
+        title: "Error",
+        description: "Status is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${BASE_URL}/api/categorys/${categoryId}`,
+        { category_status: status },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response?.data.code == 200) {
+        toast({
+          title: "Success",
+          description: response.data.msg,
+        });
+        refetch();
+      } else {
+        toast({
+          title: "Error",
+          description: response.data.msg,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update buyer",
+        variant: "destructive",
+      });
+    }
+  };
   const columns = [
     {
+      accessorKey: "index",
+      header: "Sl No",
+      cell: ({ row }) => <div>{row.index + 1}</div>,
+    },
+    {
       accessorKey: "category",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Category
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: "Category",
       cell: ({ row }) => <div>{row.getValue("category")}</div>,
     },
-
     {
       accessorKey: "category_status",
       header: "Status",
@@ -104,11 +153,30 @@ const CategoryList = () => {
       header: "Action",
       cell: ({ row }) => {
         const categoryId = row.original.id;
-
+        const currentStatus = row.original.category_status;
         return (
-          <div className="flex flex-row">
-            <EditCategory categoryId={categoryId} />
-          </div>
+          <SwitchPrimitive.Root
+            checked={currentStatus === "Active"}
+            onCheckedChange={() => handleToggle(categoryId, currentStatus)}
+            disabled={togglingId === categoryId}
+            title={currentStatus}
+            className={`relative inline-flex items-center h-6 w-11 rounded-full
+              ${currentStatus === "Active" ? "bg-green-500" : "bg-gray-400"} 
+              ${
+                togglingId == categoryId
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer"
+              }
+            `}
+          >
+            <SwitchPrimitive.Thumb
+              className={`block w-4 h-4 bg-white rounded-full transform transition-transform
+                ${
+                  currentStatus === "Active" ? "translate-x-6" : "translate-x-1"
+                }
+              `}
+            />
+          </SwitchPrimitive.Root>
         );
       },
     },

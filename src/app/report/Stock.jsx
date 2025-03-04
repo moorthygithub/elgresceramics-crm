@@ -110,56 +110,7 @@ const Stock = () => {
       [field]: value,
     }));
   };
-  // const BranchHeader = () => (
-  //   <div
-  //     className={`flex sticky top-0 z-10 border border-gray-200 rounded-lg justify-between ${ButtonConfig.cardheaderColor} items-center gap-8 mb-2 p-4 shadow-sm`}
-  //   >
-  //     <div className="flex-1">
-  //       <h1 className="text-3xl font-bold text-gray-800">Stock Summary</h1>
-  //       <p className="text-gray-600 mt-2">Add a Stock to Visit Report</p>
-  //     </div>
 
-  //     <div >
-  //       <label
-  //         className={`block ${ButtonConfig.cardLabel} text-sm mb-2 font-medium`}
-  //       >
-  //         Enter From Date <span className="text-red-500">*</span>
-  //       </label>
-  //       <Input
-  //         type="date"
-  //         value={formData.from_date}
-  //         className="bg-white"
-  //         onChange={(e) => handleInputChange("from_date", e)}
-  //         placeholder="Enter From Date"
-  //       />
-  //     </div>
-
-  //     <div >
-  //       <label
-  //         className={`block ${ButtonConfig.cardLabel} text-sm mb-2 font-medium`}
-  //       >
-  //         Enter To Date <span className="text-red-500">*</span>
-  //       </label>
-  //       <Input
-  //         type="date"
-  //         className="bg-white"
-  //         value={formData.to_date}
-  //         onChange={(e) => handleInputChange("to_date", e)}
-  //         placeholder="Enter To Date"
-  //       />
-  //     </div>
-
-  //     {/* Centered Print Button */}
-  //     <div className="flex flex-col items-center justify-center">
-  //       <Button
-  //         className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-  //         onClick={handlePrintPdf}
-  //       >
-  //         Print
-  //       </Button>
-  //     </div>
-  //   </div>
-  // );
   const BranchHeader = () => (
     <div
       className={`sticky top-0 z-10 border border-gray-200 rounded-lg ${ButtonConfig.cardheaderColor} shadow-sm p-4 mb-2`}
@@ -179,7 +130,7 @@ const Stock = () => {
             <label
               className={`block ${ButtonConfig.cardLabel} text-sm mb-1 font-medium`}
             >
-              Enter From Date <span className="text-red-500">*</span>
+              From Date <span className="text-red-500">*</span>
             </label>
             <Input
               type="date"
@@ -194,7 +145,7 @@ const Stock = () => {
             <label
               className={`block ${ButtonConfig.cardLabel} text-sm mb-1 font-medium`}
             >
-              Enter To Date <span className="text-red-500">*</span>
+              To Date <span className="text-red-500">*</span>
             </label>
             <Input
               type="date"
@@ -209,10 +160,10 @@ const Stock = () => {
         {/* Print Button */}
         <div className="flex justify-center md:justify-end w-full md:w-auto">
           <Button
-            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
+            className={`w-full sm:w-auto ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
             onClick={handlePrintPdf}
           >
-            Print
+            <Printer className="h-4 w-4 mr-1" /> Print
           </Button>
         </div>
       </div>
@@ -228,9 +179,20 @@ const Stock = () => {
           className="overflow-x-auto text-[11px] grid grid-cols-1"
           ref={containerRef}
         >
-          <h1 className="text-center text-2xl font-semibold mb-3 hidden print:block">
-            Stock Summary
-          </h1>
+          <div className="hidden print:block">
+            <div className="flex justify-between ">
+              <h1 className="text-left text-2xl font-semibold mb-3 ">
+                Stock Summary
+              </h1>
+              <div className="flex space-x-6">
+                <h1>
+                  {" "}
+                  From - {moment(formData.from_date).format("DD-MMM-YYYY")}
+                </h1>
+                <h1>To -{moment(formData.to_date).format("DD-MMM-YYYY")}</h1>
+              </div>
+            </div>
+          </div>
 
           <table className="w-full border-collapse border border-black">
             <thead className="bg-gray-100">
@@ -239,16 +201,17 @@ const Stock = () => {
                   Item Name
                 </th>
                 <th className="border border-black px-2 py-2 text-center">
+                  Open Balance
+                </th>
+                <th className="border border-black px-2 py-2 text-center">
                   Purchase
                 </th>
                 <th className="border border-black px-2 py-2 text-center">
-                  Sale
+                Dispatch
                 </th>
+
                 <th className="border border-black px-2 py-2 text-center">
-                  Open Purchase
-                </th>
-                <th className="border border-black px-2 py-2 text-center">
-                  Close Sale
+                  Close Balance
                 </th>
               </tr>
             </thead>
@@ -263,17 +226,22 @@ const Stock = () => {
                       <td className="border border-black px-2 py-2 ">
                         {buyer.item_name}
                       </td>
-                      <td className="border border-black px-2 py-2 ">
+                      <td className="border border-black px-2 py-2 text-right">
+                        {buyer.openpurch - buyer.closesale}
+                      </td>
+                      <td className="border border-black px-2 py-2 text-right">
                         {buyer.purch}
                       </td>
-                      <td className="border border-black px-2 py-2 ">
+                      <td className="border border-black px-2 py-2 text-right">
                         {buyer.sale}
                       </td>
-                      <td className="border border-black px-2 py-2 ">
-                        {buyer.openpurch}
-                      </td>
-                      <td className="border border-black px-2 py-2 ">
-                        {buyer.closesale}
+
+                      <td className="border border-black px-2 py-2 text-right">
+                        {(
+                          buyer.openpurch -
+                          buyer.closesale +
+                          (buyer.purch - buyer.sale)
+                        ).toLocaleString()}
                       </td>
                     </tr>
                   </>

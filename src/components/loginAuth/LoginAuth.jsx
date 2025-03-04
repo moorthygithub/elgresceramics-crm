@@ -15,7 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { ContextPanel } from "@/lib/ContextPanel";
 import BASE_URL from "@/config/BaseUrl";
-
+import logo from "../../assets/logo.png";
+import { ButtonConfig } from "@/config/ButtonConfig";
 export default function LoginAuth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -112,18 +113,28 @@ export default function LoginAuth() {
           transition: { duration: 0.3, ease: "easeInOut" },
         }}
       >
-        <Card className=" w-72 md:w-80 max-w-md">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Login</CardTitle>
-            <CardDescription className="text-center">
-              Enter your username and password to access your account
-            </CardDescription>
+        {/* <Card className=`w-72 md:w-80 max-w-md ${ButtonConfig.loginBackground} ${ButtonConfig.loginText}`> */}
+        <Card
+          className={`w-72 md:w-80 max-w-md ${ButtonConfig.loginBackground} ${ButtonConfig.loginText}`}
+        >
+          <CardHeader>
+            <img src={logo} alt="logo" className="w-[200px] mx-auto" />
+            <CardTitle
+              className={`text-2xl text-center${ButtonConfig.loginText}`}
+            >
+              Login
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Username</Label>
+                  <Label
+                    htmlFor="email"
+                    className={`${ButtonConfig.loginText}`}
+                  >
+                    Username
+                  </Label>
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -136,13 +147,17 @@ export default function LoginAuth() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      className="bg-gray-800 text-white placeholder-gray-400 border-white"
                     />
                   </motion.div>
                 </div>
                 <div className="grid gap-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                  </div>
+                  <Label
+                    htmlFor="password"
+                    className={`${ButtonConfig.loginText}`}
+                  >
+                    Password
+                  </Label>
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -155,6 +170,7 @@ export default function LoginAuth() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      className="bg-gray-800 text-white placeholder-gray-400 border-white"
                     />
                   </motion.div>
                 </div>
@@ -165,24 +181,18 @@ export default function LoginAuth() {
                 >
                   <Button
                     type="submit"
-                    className="w-full bg-yellow-500 text-black hover:bg-yellow-100"
+                    className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} w-full`}
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex items-center justify-center"
+                        key={loadingMessage}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="text-sm"
                       >
-                        <motion.span
-                          key={loadingMessage}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="text-sm"
-                        >
-                          {loadingMessage}
-                        </motion.span>
+                        {loadingMessage}
                       </motion.span>
                     ) : (
                       "Sign in"
@@ -192,10 +202,15 @@ export default function LoginAuth() {
               </div>
             </form>
             <CardDescription
-              className="cursor-pointer flex justify-end mt-4 underline"
-              onClick={() => navigate("/forgot-password")}
+              className={`flex justify-end mt-4 underline ${ButtonConfig.loginText}`}
             >
-              Forgot Password
+              <span
+                onClick={() => navigate("/forgot-password")}
+                className="cursor-pointer "
+              >
+                {" "}
+                Forgot Password
+              </span>
             </CardDescription>
           </CardContent>
         </Card>

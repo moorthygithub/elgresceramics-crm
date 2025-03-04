@@ -1,40 +1,34 @@
 import Page from "@/app/dashboard/page";
-import React, { useCallback, useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { z } from "zod";
-import { Card, CardContent } from "@/components/ui/card";
+import { MemoizedProductSelect } from "@/components/common/MemoizedProductSelect";
+import { MemoizedSelect } from "@/components/common/MemoizedSelect";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { ProgressBar } from "@/components/spinner/ProgressBar";
-import { ButtonConfig } from "@/config/ButtonConfig";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import BASE_URL from "@/config/BaseUrl";
-import { MinusCircle, PlusCircle, SquarePlus } from "lucide-react";
 import {
   Table,
-  TableHeader,
-  TableRow,
-  TableHead,
   TableBody,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import CreateCategory from "../master/category/CreateCategory";
-import CreateItem from "../master/item/CreateItem";
-import CreateBuyer from "../master/buyer/CreateBuyer";
+import { Textarea } from "@/components/ui/textarea";
+import BASE_URL from "@/config/BaseUrl";
+import { ButtonConfig } from "@/config/ButtonConfig";
+import { useToast } from "@/hooks/use-toast";
 import {
   useFetchBuyers,
   useFetchCategory,
   useFetchItems,
 } from "@/hooks/useApi";
+import { useMutation } from "@tanstack/react-query";
+import { MinusCircle, PlusCircle, SquarePlus } from "lucide-react";
+import moment from "moment";
+import { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+import CreateBuyer from "../master/buyer/CreateBuyer";
+import CreateItem from "../master/item/CreateItem";
 // Validation Schema
 
 const productRowSchema = z.object({
@@ -51,7 +45,7 @@ const contractFormSchema = z.object({
   sales_buyer_name: z.string().min(1, "Buyer Name is required"),
   sales_buyer_city: z.string().min(1, "City is required"),
   sales_ref_no: z.string().min(1, "Ref is required"),
-  sales_vehicle_no: z.string().min(1, "Vehicle No is required"),
+  sales_vehicle_no: z.any().optional(),
   sales_remark: z.any().optional(),
   sales_product_data: z.array(productRowSchema),
 });
@@ -62,7 +56,7 @@ const BranchHeader = () => {
       className={`flex sticky top-0 z-10 border border-gray-200 rounded-lg justify-between items-start gap-8 mb-2 ${ButtonConfig.cardheaderColor} p-4 shadow-sm`}
     >
       <div className="flex-1">
-        <h1 className="text-3xl font-bold text-gray-800">Create Sales</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Create Dispatch</h1>
       </div>
     </div>
   );
@@ -93,10 +87,10 @@ const createBranch = async (data) => {
 const CreateSales = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const today = moment().format("YYYY-MM-DD");
 
-  const [itemData, setItemData] = useState([]);
   const [formData, setFormData] = useState({
-    sales_date: "",
+    sales_date: today,
     sales_buyer_name: "",
     sales_buyer_city: "",
     sales_ref_no: "",
@@ -143,7 +137,7 @@ const CreateSales = () => {
           title: "Success",
           description: response.msg,
         });
-        navigate("/master/sales");
+        navigate("/dispatch");
       } else if (response.code == 400) {
         toast({
           title: "Duplicate Entry",
@@ -190,33 +184,35 @@ const CreateSales = () => {
   const { data: buyerData } = useFetchBuyers();
   const { data: categoryData } = useFetchCategory();
   const { data: itemsData } = useFetchItems();
-  const handlePaymentChange = (e, rowIndex, fieldName) => {
-    const value = e.target.value;
+  const handlePaymentChange = (selectedValue, rowIndex, fieldName) => {
+    let value;
+
+    if (selectedValue && selectedValue.target) {
+      value = selectedValue.target.value;
+    } else {
+      value = selectedValue;
+    }
+
+    console.log("Selected Value:", value);
+
     const updatedData = [...invoiceData];
 
-    if (fieldName === "sales_sub_category") {
+    if (fieldName === "sales_sub_item") {
       updatedData[rowIndex][fieldName] = value;
-      setInvoiceData(updatedData);
 
-      const filteredItems = itemsData?.items?.filter(
-        (item) => item.item_category === value
+      const selectedItem = itemsData?.items?.find(
+        (item) => item.item_name === value
       );
 
-      setItemData(filteredItems || []);
-      console.log("Filtered Items:", filteredItems);
-    } else if (fieldName === "sales_sub_item") {
-      updatedData[rowIndex][fieldName] = value;
-
-      const selectedItem = itemData.find((item) => item.item_name === value);
-
       if (selectedItem) {
+        updatedData[rowIndex]["sales_sub_category"] =
+          selectedItem.item_category;
         updatedData[rowIndex]["sales_sub_size"] = selectedItem.item_size;
         updatedData[rowIndex]["sales_sub_brand"] = selectedItem.item_brand;
         updatedData[rowIndex]["sales_sub_weight"] = selectedItem.item_weight;
       }
 
       setInvoiceData(updatedData);
-      console.log(updatedData, "updatedData");
     } else {
       if (["sales_sub_weight", "sales_sub_box"].includes(fieldName)) {
         if (!/^\d*$/.test(value)) {
@@ -233,12 +229,22 @@ const CreateSales = () => {
   const handleInputChange = (e, field) => {
     const value = e.target ? e.target.value : e;
 
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+    let updatedFormData = { ...formData, [field]: value };
 
+    if (field === "sales_buyer_name") {
+      const selectedBuyer = buyerData?.buyers.find(
+        (buyer) => buyer.buyer_name === value
+      );
+
+      if (selectedBuyer) {
+        updatedFormData.sales_buyer_city = selectedBuyer.buyer_city;
+      } else {
+        updatedFormData.sales_buyer_city = "";
+      }
+    }
+
+    setFormData(updatedFormData);
+  };
   const fieldLabels = {
     sales_date: "Sales Date",
     sales_buyer_name: "Buyer Name",
@@ -315,13 +321,13 @@ const CreateSales = () => {
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Sales Date<span className="text-red-500">*</span>
+                    Date<span className="text-red-500">*</span>
                   </label>
                   <Input
                     className="bg-white"
                     value={formData.sales_date}
                     onChange={(e) => handleInputChange(e, "sales_date")}
-                    placeholder="Enter Sales Date"
+                    placeholder="Enter Date"
                     type="date"
                   />
                 </div>
@@ -330,37 +336,23 @@ const CreateSales = () => {
                 <label
                   className={`block ${ButtonConfig.cardLabel} text-sm mb-2 font-medium flex justify-between items-center`}
                 >
-                  <span className="flex items-center">
-                    Buyer <span className="text-red-500 ml-1">*</span>
-                  </span>
                   <span className="flex items-center space-x-1">
                     <SquarePlus className="h-3 w-3 text-red-600" />
                     <CreateBuyer />
                   </span>
                 </label>
 
-                <Select
+                <MemoizedSelect
                   value={formData.sales_buyer_name}
-                  onValueChange={(value) =>
-                    handleInputChange({ target: { value } }, "sales_buyer_name")
+                  onChange={(e) => handleInputChange(e, "sales_buyer_name")}
+                  options={
+                    buyerData?.buyers?.map((buyer) => ({
+                      value: buyer.buyer_name,
+                      label: buyer.buyer_name,
+                    })) || []
                   }
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Select Buyer" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectContent>
-                      {buyerData?.buyers?.map((branch) => (
-                        <SelectItem
-                          key={branch.buyer_name}
-                          value={branch.buyer_name}
-                        >
-                          {branch.buyer_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </SelectContent>
-                </Select>
+                  placeholder="Select Buyer"
+                />
               </div>
 
               <div>
@@ -375,6 +367,7 @@ const CreateSales = () => {
                     value={formData.sales_buyer_city}
                     onChange={(e) => handleInputChange(e, "sales_buyer_city")}
                     placeholder="Enter City"
+                    disabled
                   />
                 </div>
               </div>
@@ -390,7 +383,7 @@ const CreateSales = () => {
                     className="bg-white"
                     value={formData.sales_ref_no}
                     onChange={(e) => handleInputChange(e, "sales_ref_no")}
-                    placeholder="Enter  Ref No"
+                    placeholder="Enter Ref No"
                   />
                 </div>
               </div>
@@ -399,7 +392,7 @@ const CreateSales = () => {
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Vehicle No<span className="text-red-500">*</span>
+                    Vehicle No
                   </label>
                   <Input
                     className="bg-white"
@@ -409,14 +402,14 @@ const CreateSales = () => {
                   />
                 </div>
               </div>
-              <div>
+              <div className="md:col-span-3">
                 <div>
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Remark<span className="text-red-500">*</span>
+                    Remark
                   </label>
-                  <Input
+                  <Textarea
                     className="bg-white"
                     value={formData.sales_remark}
                     onChange={(e) => handleInputChange(e, "sales_remark")}
@@ -433,29 +426,19 @@ const CreateSales = () => {
                     <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
                       <div className="flex items-center">
                         <SquarePlus className="h-3 w-3 mr-1 text-red-600" />
-                        <CreateCategory />
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      <div className="flex items-center">
-                        <SquarePlus className="h-3 w-3 mr-1 text-red-600" />
                         <CreateItem />
                       </div>
                     </TableHead>
+
                     <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Size
+                      Box<span className="text-red-500 ml-1">*</span>
                     </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Brand
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Weight
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Box
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Action{" "}
+                    <TableHead className="text-sm font-semibold py-3 px-4 w-1/6 text-center">
+                      Action
+                      <PlusCircle
+                        onClick={addRow}
+                        className="inline-block ml-2 cursor-pointer text-blue-500 hover:text-gray-800 h-4 w-4"
+                      />
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -466,90 +449,26 @@ const CreateSales = () => {
                       className="border-t border-gray-200 hover:bg-gray-50"
                     >
                       <TableCell className="px-4 py-2">
-                        <Select
-                          value={row.sales_sub_category}
-                          onValueChange={(value) => {
-                            handlePaymentChange(
-                              { target: { value } },
-                              rowIndex,
-                              "sales_sub_category"
-                            );
-                          }}
-                        >
-                          <SelectTrigger className="bg-white border border-gray-300">
-                            <SelectValue placeholder="Select Category">
-                              {row.sales_sub_category || "Select Category"}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="bg-white">
-                            {categoryData?.category?.map((product, index) => (
-                              <SelectItem key={index} value={product.category}>
-                                {product.category}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-
-                      <TableCell className="px-4 py-2">
-                        <Select
+                        <MemoizedProductSelect
                           value={row.sales_sub_item}
-                          onValueChange={(value) => {
-                            handlePaymentChange(
-                              { target: { value } },
-                              rowIndex,
-                              "sales_sub_item"
-                            );
-                          }}
-                        >
-                          <SelectTrigger className="bg-white border border-gray-300">
-                            <SelectValue placeholder="Select Item">
-                              {row.sales_sub_item || "Select Item"}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="bg-white">
-                            {itemData?.map((product, index) => (
-                              <SelectItem key={index} value={product.item_name}>
-                                {product.item_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          onChange={(e) =>
+                            handlePaymentChange(e, rowIndex, "sales_sub_item")
+                          }
+                          options={
+                            itemsData?.items?.map((product) => ({
+                              value: product.item_name,
+                              label: product.item_name,
+                            })) || []
+                          }
+                          placeholder="Select Item"
+                        />
+                        {row.sales_sub_item && (
+                          <div className="text-sm text-black mt-1">
+                            •{row.sales_sub_category} • {row.sales_sub_size}
+                          </div>
+                        )}
                       </TableCell>
 
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Input
-                          className="bg-white border border-gray-300"
-                          value={row.sales_sub_size}
-                          onChange={(e) =>
-                            handlePaymentChange(e, rowIndex, "sales_sub_size")
-                          }
-                          placeholder="Enter Size"
-                          disabled
-                        />
-                      </TableCell>
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Input
-                          className="bg-white border border-gray-300"
-                          value={row.sales_sub_brand}
-                          onChange={(e) =>
-                            handlePaymentChange(e, rowIndex, "sales_sub_brand")
-                          }
-                          placeholder="Enter Brand"
-                          disabled
-                        />
-                      </TableCell>
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Input
-                          className="bg-white border border-gray-300"
-                          value={row.sales_sub_weight}
-                          onChange={(e) =>
-                            handlePaymentChange(e, rowIndex, "sales_sub_weight")
-                          }
-                          placeholder="Enter Weight"
-                          disabled
-                        />
-                      </TableCell>
                       <TableCell className="px-4 py-2 min-w-28 ">
                         <Input
                           className="bg-white border border-gray-300"
@@ -558,8 +477,12 @@ const CreateSales = () => {
                             handlePaymentChange(e, rowIndex, "sales_sub_box")
                           }
                           placeholder="Enter Box"
-                          type="number"
                         />
+                        {row.sales_sub_item && (
+                          <div className="text-sm text-black mt-1">
+                            • {row.sales_sub_brand}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="p-2 border">
                         <Button
@@ -577,16 +500,6 @@ const CreateSales = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="mt-4 flex justify-end">
-              <Button
-                type="button"
-                onClick={addRow}
-                className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-              >
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
@@ -596,7 +509,7 @@ const CreateSales = () => {
             className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
             disabled={createBranchMutation.isPending}
           >
-            {createBranchMutation.isPending ? "Submitting..." : "Create Sales"}
+            {createBranchMutation.isPending ? "Submitting..." : "Create Dispatch"}
           </Button>
         </div>
       </form>
