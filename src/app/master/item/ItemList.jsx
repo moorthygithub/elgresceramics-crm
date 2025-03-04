@@ -27,12 +27,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import axios from "axios";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Search
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, Loader2, Search } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -71,17 +66,22 @@ const ItemList = () => {
       header: "Sl No",
       cell: ({ row }) => <div>{row.index + 1}</div>,
     },
+    // {
+    //   accessorKey: "item_category",
+    //   header: ({ column }) => (
+    //     <Button
+    //       variant="ghost"
+    //       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    //     >
+    //       Category
+    //       <ArrowUpDown className="ml-2 h-4 w-4" />
+    //     </Button>
+    //   ),
+    //   cell: ({ row }) => <div>{row.getValue("item_category")}</div>,
+    // },
     {
       accessorKey: "item_category",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Item Category
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: "Category",
       cell: ({ row }) => <div>{row.getValue("item_category")}</div>,
     },
     {
@@ -159,7 +159,7 @@ const ItemList = () => {
     },
     initialState: {
       pagination: {
-        pageSize: 7,
+        pageSize: 10,
       },
     },
   });

@@ -84,20 +84,27 @@ const EditItem = ({ ItemId }) => {
 
   // Handle form submission
   const handleSubmit = async () => {
-    if (
-      !formData.item_size.trim() ||
-      !formData.item_brand.trim() ||
-      // !formData.item_weight.trim() ||
-      !formData.item_status.trim()
-    ) {
+    const missingFields = [];
+    if (!formData.item_size) missingFields.push("Size");
+    if (!formData.item_brand) missingFields.push("Brand");
+    if (!formData.item_status) missingFields.push("Status");
+    if (missingFields.length > 0) {
       toast({
-        title: "Error",
-        description: "Fill the  required Field",
+        title: "Validation Error",
+        description: (
+          <div>
+            <p>Please fill in the following fields:</p>
+            <ul className="list-disc pl-5">
+              {missingFields.map((field, index) => (
+                <li key={index}>{field}</li>
+              ))}
+            </ul>
+          </div>
+        ),
         variant: "destructive",
       });
       return;
     }
-
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -170,7 +177,7 @@ const EditItem = ({ ItemId }) => {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <PopoverContent className="md:w-80 overflow-y-auto max-h-[280px] md:max-h-[26rem]">
+      <PopoverContent className="overflow-y-auto max-h-[260px] md:max-h-[360px]">
         {isFetching ? (
           <div className="flex justify-center py-4">
             <Loader2 className="h-6 w-6 animate-spin" />

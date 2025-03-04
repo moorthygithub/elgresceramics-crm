@@ -27,12 +27,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import axios from "axios";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Search
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, Loader2, Search } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -71,17 +66,10 @@ const BuyerList = () => {
       header: "Sl No",
       cell: ({ row }) => <div>{row.index + 1}</div>,
     },
+
     {
       accessorKey: "buyer_name",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Buyer Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: "Buyer Name",
       cell: ({ row }) => <div>{row.getValue("buyer_name")}</div>,
     },
     {

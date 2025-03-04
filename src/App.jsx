@@ -1,33 +1,35 @@
-import Login from "./app/auth/Login";
 import { Route, Routes, useNavigate } from "react-router-dom";
+import Login from "./app/auth/Login";
 import { Toaster } from "./components/ui/toaster";
-// import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Home from "./app/home/Home";
-import BASE_URL from "./config/BaseUrl";
-import SessionTimeoutTracker from "./components/SessionTimeoutTracker/SessionTimeoutTracker";
-import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
 import BuyerList from "./app/master/buyer/BuyerList";
-import ItemList from "./app/master/item/ItemList";
 import CategoryList from "./app/master/category/CategoryList";
-import PurchaseList from "./app/master/purchase/PurchaseList";
-import CreatePurchase from "./app/master/purchase/CreatePurchase";
-import EditPurchase from "./app/master/purchase/EditPurchase";
-import SalesList from "./app/master/sales/SalesList";
-import CreateSales from "./app/master/sales/CreateSales";
-import EditSales from "./app/master/sales/EditSales";
-import Stock from "./app/report/Stock";
+import ItemList from "./app/master/item/ItemList";
+import CreatePurchase from "./app/purchase/CreatePurchase";
+import EditPurchase from "./app/purchase/EditPurchase";
+import PurchaseList from "./app/purchase/PurchaseList";
+import CreateSales from "./app/sales/CreateSales";
+import EditSales from "./app/sales/EditSales";
+import SalesList from "./app/sales/SalesList";
 import BuyerReport from "./app/report/BuyerReport";
-
-// const queryClient = new QueryClient();
+import Stock from "./app/report/Stock";
+import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
+import SessionTimeoutTracker from "./components/SessionTimeoutTracker/SessionTimeoutTracker";
+import DisabledRightClick from "./components/common/DisabledRightClick";
+import SalesView from "./app/sales/SalesView";
 
 function App() {
   const navigate = useNavigate();
   const time = localStorage.getItem("token-expire-time");
-
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
   return (
     <>
+      {/* <DisabledRightClick /> */}
       <Toaster />
-      {/* <SessionTimeoutTracker expiryTime={time} onLogout={handleLogout} /> */}
+      <SessionTimeoutTracker expiryTime={time} onLogout={handleLogout} />
       <Routes>
         {/* Login Page        */}
         <Route path="/" element={<Login />} />
@@ -42,13 +44,14 @@ function App() {
         {/* ----------------->Category*/}
         <Route path="/master/category" element={<CategoryList />} />
         {/* ----------------->Purchase*/}
-        <Route path="/master/purchase" element={<PurchaseList />} />
-        <Route path="/master/purchase/create" element={<CreatePurchase />} />
-        <Route path="/master/purchase/edit/:id" element={<EditPurchase />} />
+        <Route path="/purchase" element={<PurchaseList />} />
+        <Route path="/purchase/create" element={<CreatePurchase />} />
+        <Route path="/purchase/edit/:id" element={<EditPurchase />} />
         {/* ----------------->Sales*/}
-        <Route path="/master/sales" element={<SalesList />} />
-        <Route path="/master/sales/create" element={<CreateSales />} />
-        <Route path="/master/sales/edit/:id" element={<EditSales />} />
+        <Route path="/dispatch" element={<SalesList />} />
+        <Route path="/dispatch/create" element={<CreateSales />} />
+        <Route path="/dispatch/edit/:id" element={<EditSales />} />
+        <Route path="/dispatch/view/:id" element={<SalesView />} />
         {/* ------------------------Report---------------------------- */}
         <Route path="/report/stock" element={<Stock />} />
         <Route path="/report/buyer" element={<BuyerReport />} />

@@ -15,7 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import BASE_URL from "@/config/BaseUrl";
 import { motion, AnimatePresence } from "framer-motion";
 import { ContextPanel } from "@/lib/ContextPanel";
-
+import logo from "../../assets/logo.png";
+import { ButtonConfig } from "@/config/ButtonConfig";
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [username, setUserName] = useState("");
@@ -114,21 +115,28 @@ export default function ForgotPassword() {
           transition: { duration: 0.3, ease: "easeInOut" },
         }}
       >
-        <Card className="w-72 md:w-80 max-w-md">
+        <Card
+          className={`w-72 md:w-80 max-w-md ${ButtonConfig.loginBackground} ${ButtonConfig.loginText}`}
+        >
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">
+            <CardTitle
+              className={`text-2xl text-center${ButtonConfig.loginText}`}
+            >
+              <img src={logo} alt="logo" className="w-[200px] mx-auto" />
               Forgot Password
             </CardTitle>
-            <CardDescription className="text-center">
-              Enter your username and Email Id to Reset Password
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="username">UserName</Label>
+                    <Label
+                      htmlFor="username"
+                      className={`${ButtonConfig.loginText}`}
+                    >
+                      Username
+                    </Label>
                   </div>
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
@@ -138,16 +146,22 @@ export default function ForgotPassword() {
                     <Input
                       id="username"
                       type="text"
-                      placeholder="Enter your UserName"
+                      placeholder="Enter your username"
                       value={username}
                       onChange={(e) => setUserName(e.target.value)}
                       required
+                      className="bg-gray-800 text-white placeholder-gray-400 border-white"
                     />
                   </motion.div>
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label
+                    htmlFor="email"
+                    className={`${ButtonConfig.loginText}`}
+                  >
+                    Email
+                  </Label>
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -160,6 +174,7 @@ export default function ForgotPassword() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      className="bg-gray-800 text-white placeholder-gray-400 border-white"
                     />
                   </motion.div>
                 </div>
@@ -170,7 +185,7 @@ export default function ForgotPassword() {
                 >
                   <Button
                     type="submit"
-                    className="w-full bg-yellow-500 text-black hover:bg-yellow-100"
+                    className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} w-full`}
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -197,10 +212,12 @@ export default function ForgotPassword() {
               </div>
             </form>
             <CardDescription
-              className="cursor-pointer flex justify-end mt-4 underline"
-              onClick={() => navigate("/")}
+              className={`flex justify-end mt-4 underline ${ButtonConfig.loginText}`}
             >
-              Sign In
+              <span onClick={() => navigate("/")} className="cursor-pointer">
+                {" "}
+                Sign In
+              </span>
             </CardDescription>
           </CardContent>
         </Card>

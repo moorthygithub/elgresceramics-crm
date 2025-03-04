@@ -1,4 +1,6 @@
 import Page from "@/app/dashboard/page";
+import { MemoizedProductSelect } from "@/components/common/MemoizedProductSelect";
+import { MemoizedSelect } from "@/components/common/MemoizedSelect";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,14 +19,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
 import BASE_URL from "@/config/BaseUrl";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { MinusCircle, PlusCircle } from "lucide-react";
+import { MinusCircle, PlusCircle, SquarePlus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
+import CreateBuyer from "../master/buyer/CreateBuyer";
+import CreateItem from "../master/item/CreateItem";
+import { decryptId } from "@/components/common/Encryption";
 // Validation Schema
 
 const BranchHeader = () => {
@@ -39,11 +55,11 @@ const BranchHeader = () => {
   );
 };
 
-const createBranch = async ({ id, data }) => {
+const createBranch = async ({ decryptedId, data }) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("No authentication token found");
 
-  const response = await fetch(`${BASE_URL}/api/purchases/${id}`, {
+  const response = await fetch(`${BASE_URL}/api/purchases/${decryptedId}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -62,7 +78,11 @@ const EditPurchase = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { id } = useParams();
-  const [itemData, setItemData] = useState([]);
+  const decryptedId = decryptId(id);
+
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState(null);
+
   const [formData, setFormData] = useState({
     purchase_date: "",
     purchase_buyer_name: "",
@@ -183,22 +203,16 @@ const EditPurchase = () => {
     },
   });
 
-  useEffect(() => {
-    if (itemsData) {
-      setItemData(itemsData.items || []);
-    }
-  }, [itemsData]);
-
   const {
     data: purchaseByid,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["purchaseByid", id],
+    queryKey: ["purchaseByid", decryptedId],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${BASE_URL}/api/purchases/${id}`, {
+      const response = await fetch(`${BASE_URL}/api/purchases/${decryptedId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -222,11 +236,8 @@ const EditPurchase = () => {
           purchase_status: purchaseByid.purchase.purchase_status || "",
         });
 
-        console.log("Raw purchase_sub data:", purchaseByid.purchaseSub);
-
         if (Array.isArray(purchaseByid.purchaseSub)) {
           const mappedData = purchaseByid.purchaseSub.map((sub, index) => {
-            console.log(`Mapping index ${index}:`, sub.purchase_sub_brand);
             return {
               id: sub.id || "",
               purchase_sub_category: sub.purchase_sub_category || "",
@@ -238,7 +249,6 @@ const EditPurchase = () => {
             };
           });
 
-          console.log("Final mapped invoiceData:", mappedData);
           setInvoiceData(mappedData);
         } else {
           console.warn("purchase_sub is missing or not an array");
@@ -257,45 +267,66 @@ const EditPurchase = () => {
     }
   }, [purchaseByid, itemsData, categoryData]);
 
-  const handlePaymentChange = (e, rowIndex, fieldName) => {
-    const value = e.target.value;
+  const handlePaymentChange = (selectedValue, rowIndex, fieldName) => {
+    let value;
 
-    setInvoiceData((prevData) =>
-      prevData.map((row, index) => {
-        if (index !== rowIndex) return row;
+    if (selectedValue && selectedValue.target) {
+      value = selectedValue.target.value;
+    } else {
+      value = selectedValue;
+    }
 
-        const updatedRow = { ...row, [fieldName]: value };
+    console.log("Selected Value:", value);
 
-        if (fieldName === "purchase_sub_category") {
-          const filteredItems = itemsData?.items?.filter(
-            (item) => item.item_category === value
-          );
-          setItemData(filteredItems || []);
+    const updatedData = [...invoiceData];
+
+    if (fieldName === "purchase_sub_item") {
+      updatedData[rowIndex][fieldName] = value;
+
+      const selectedItem = itemsData?.items?.find(
+        (item) => item.item_name === value
+      );
+
+      if (selectedItem) {
+        updatedData[rowIndex]["purchase_sub_category"] =
+          selectedItem.item_category;
+        updatedData[rowIndex]["purchase_sub_size"] = selectedItem.item_size;
+        updatedData[rowIndex]["purchase_sub_brand"] = selectedItem.item_brand;
+        updatedData[rowIndex]["purchase_sub_weight"] = selectedItem.item_weight;
+      }
+
+      setInvoiceData(updatedData);
+    } else {
+      if (["purchase_sub_weight", "purchase_sub_box"].includes(fieldName)) {
+        if (!/^\d*$/.test(value)) {
+          console.log("Invalid input. Only digits are allowed.");
+          return;
         }
+      }
 
-        if (fieldName === "purchase_sub_item") {
-          const selectedItem = itemData.find(
-            (item) => item.item_name === value
-          );
-          if (selectedItem) {
-            updatedRow.purchase_sub_size = selectedItem.item_size;
-            updatedRow.purchase_sub_brand = selectedItem.item_brand;
-            updatedRow.purchase_sub_weight = selectedItem.item_weight;
-          }
-        }
-
-        return updatedRow;
-      })
-    );
+      updatedData[rowIndex][fieldName] = value;
+      setInvoiceData(updatedData);
+    }
   };
 
   const handleInputChange = (e, field) => {
     const value = e.target ? e.target.value : e;
 
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    let updatedFormData = { ...formData, [field]: value };
+
+    if (field === "purchase_buyer_name") {
+      const selectedBuyer = buyerData?.buyers.find(
+        (buyer) => buyer.buyer_name === value
+      );
+
+      if (selectedBuyer) {
+        updatedFormData.purchase_buyer_city = selectedBuyer.buyer_city;
+      } else {
+        updatedFormData.purchase_buyer_city = "";
+      }
+    }
+
+    setFormData(updatedFormData);
   };
   const addRow = useCallback(() => {
     setInvoiceData((prev) => [
@@ -319,15 +350,77 @@ const EditPurchase = () => {
     },
     [invoiceData.length]
   );
+  const handleDeleteRow = (productId) => {
+    setDeleteItemId(productId);
+    setDeleteConfirmOpen(true);
+  };
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId) => {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${BASE_URL}/api/purchases-sub/${productId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
+      if (!response.ok) throw new Error("Failed to delete Purchase Table");
+
+      return response.json(); // Ensure response is returned as JSON
+    },
+    onSuccess: (data) => {
+      if (data.code === 200) {
+        toast({
+          title: "Success",
+          description: data.msg,
+        });
+        refetch();
+      } else if (data.code === 400) {
+        toast({
+          title: "Duplicate Entry",
+          description: data.msg,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Unexpected Response",
+          description: data.msg || "Something unexpected happened.",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const confirmDelete = async () => {
+    try {
+      await deleteProductMutation.mutateAsync(deleteItemId);
+      setContractData((prevData) =>
+        prevData.filter((row) => row.id !== deleteItemId)
+      );
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeleteItemId(null);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     const missingFields = [];
     if (!formData.purchase_date) missingFields.push("Purchase Date");
     if (!formData.purchase_buyer_name) missingFields.push("Buyer Name");
     if (!formData.purchase_buyer_city) missingFields.push("Buyer City");
-    if (!formData.purchase_ref_no) missingFields.push("Ref");
-    if (!formData.purchase_vehicle_no) missingFields.push("Vehicle No");
+    if (!formData.purchase_ref_no) missingFields.push("Bill Ref No");
     if (!formData.purchase_status) missingFields.push("Status");
     invoiceData.forEach((row, index) => {
       if (!row.purchase_sub_category)
@@ -363,7 +456,7 @@ const EditPurchase = () => {
         ...formData,
         purchase_product_data: invoiceData,
       };
-      createBranchMutation.mutate({ id, data: updateData });
+      createBranchMutation.mutate({ decryptedId, data: updateData });
     } catch (error) {
       if (error instanceof z.ZodError) {
         const groupedErrors = error.errors.reduce((acc, err) => {
@@ -417,7 +510,7 @@ const EditPurchase = () => {
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Purchase Date<span className="text-red-500">*</span>
+                    Date<span className="text-red-500">*</span>
                   </label>
                   <Input
                     className="bg-white"
@@ -430,35 +523,24 @@ const EditPurchase = () => {
               </div>
               <div>
                 <label
-                  className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                  className={`block ${ButtonConfig.cardLabel} text-sm mb-3  font-medium flex justify-between items-center`}
                 >
-                  Company <span className="text-red-500">*</span>
+                  <span className="flex items-center space-x-1">
+                    <SquarePlus className="h-3 w-3 text-red-600" />
+                    <CreateBuyer />
+                  </span>
                 </label>
-                <Select
+                <MemoizedSelect
                   value={formData.purchase_buyer_name}
-                  onValueChange={(value) =>
-                    handleInputChange(
-                      { target: { value } },
-                      "purchase_buyer_name"
-                    )
+                  onChange={(e) => handleInputChange(e, "purchase_buyer_name")}
+                  options={
+                    buyerData?.buyers?.map((buyer) => ({
+                      value: buyer.buyer_name,
+                      label: buyer.buyer_name,
+                    })) || []
                   }
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Select Company" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectContent>
-                      {buyerData?.buyers?.map((branch) => (
-                        <SelectItem
-                          key={branch.buyer_name}
-                          value={branch.buyer_name}
-                        >
-                          {branch.buyer_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </SelectContent>
-                </Select>
+                  placeholder="Select Buyer"
+                />
               </div>
 
               <div>
@@ -475,6 +557,7 @@ const EditPurchase = () => {
                       handleInputChange(e, "purchase_buyer_city")
                     }
                     placeholder="Enter City"
+                    disabled
                   />
                 </div>
               </div>
@@ -484,13 +567,13 @@ const EditPurchase = () => {
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Ref No<span className="text-red-500">*</span>
+                   Ref No<span className="text-red-500">*</span>
                   </label>
                   <Input
                     className="bg-white"
                     value={formData.purchase_ref_no}
                     onChange={(e) => handleInputChange(e, "purchase_ref_no")}
-                    placeholder="Enter  Ref No"
+                    placeholder="Enter Ref No"
                   />
                 </div>
               </div>
@@ -499,7 +582,7 @@ const EditPurchase = () => {
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Vehicle No<span className="text-red-500">*</span>
+                    Vehicle No
                   </label>
                   <Input
                     className="bg-white"
@@ -511,14 +594,14 @@ const EditPurchase = () => {
                   />
                 </div>
               </div>
-              <div>
+              <div className="md:col-span-2">
                 <div>
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Remark<span className="text-red-500">*</span>
+                    Remark
                   </label>
-                  <Input
+                  <Textarea
                     className="bg-white"
                     value={formData.purchase_remark}
                     onChange={(e) => handleInputChange(e, "purchase_remark")}
@@ -532,7 +615,7 @@ const EditPurchase = () => {
                   htmlFor="purchase_status"
                   className="text-sm font-medium"
                 >
-                  Status
+                  Status<span className="text-red-500">*</span>
                 </label>
                 <Select
                   value={formData.purchase_status}
@@ -540,10 +623,10 @@ const EditPurchase = () => {
                     setFormData((prev) => ({ ...prev, purchase_status: value }))
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white border border-gray-300 rounded-md">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white border border-gray-200 shadow-md">
                     <SelectItem value="Active">
                       <div className="flex items-center">
                         <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
@@ -566,25 +649,20 @@ const EditPurchase = () => {
                 <TableHeader>
                   <TableRow className="bg-gray-100">
                     <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Category
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Item
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Size
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Brand
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Weight
+                      <div className="flex items-center">
+                        <SquarePlus className="h-3 w-3 mr-1 text-red-600" />
+                        <CreateItem />
+                      </div>
                     </TableHead>
                     <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
                       Box
                     </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Action{" "}
+                    <TableHead className="text-sm font-semibold py-3 px-4 w-1/6 text-center">
+                      Action
+                      <PlusCircle
+                        onClick={addRow}
+                        className="inline-block ml-2 cursor-pointer text-blue-500 hover:text-gray-800 h-4 w-4"
+                      />
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -594,104 +672,35 @@ const EditPurchase = () => {
                       key={rowIndex}
                       className="border-t border-gray-200 hover:bg-gray-50"
                     >
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Select
-                          value={row.purchase_sub_category}
-                          onValueChange={(value) => {
-                            handlePaymentChange(
-                              { target: { value } },
-                              rowIndex,
-                              "purchase_sub_category"
-                            );
-                          }}
-                        >
-                          <SelectTrigger className="bg-white border border-gray-300">
-                            <SelectValue placeholder="Select Payment">
-                              {row.purchase_sub_category || "Select Payment"}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="bg-white">
-                            {categoryData?.category?.map((product, index) => (
-                              <SelectItem key={index} value={product.category}>
-                                {product.category}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <TableCell className="px-4 py-2">
+                        <div>
+                          <MemoizedProductSelect
+                            // key={row.purchase_sub_item}
+                            value={row.purchase_sub_item}
+                            onChange={(e) =>
+                              handlePaymentChange(
+                                e,
+                                rowIndex,
+                                "purchase_sub_item"
+                              )
+                            }
+                            options={
+                              itemsData?.items?.map((product) => ({
+                                value: product.item_name,
+                                label: product.item_name,
+                              })) || []
+                            }
+                            placeholder="Select Item"
+                          />
+                        </div>
+                        {row.purchase_sub_item && (
+                          <div className="text-sm text-black mt-1">
+                            •{row.purchase_sub_category} •{" "}
+                            {row.purchase_sub_size}
+                          </div>
+                        )}
                       </TableCell>
 
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Select
-                          key={row.purchase_sub_item}
-                          value={row.purchase_sub_item}
-                          onValueChange={(value) => {
-                            handlePaymentChange(
-                              { target: { value } },
-                              rowIndex,
-                              "purchase_sub_item"
-                            );
-                          }}
-                        >
-                          <SelectTrigger className="bg-white border border-gray-300">
-                            <SelectValue placeholder="Select Payment">
-                              {row.purchase_sub_item || "Select Payment"}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="bg-white">
-                            {itemData?.map((product, index) => (
-                              <SelectItem key={index} value={product.item_name}>
-                                {product.item_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Input
-                          className="bg-white border border-gray-300"
-                          value={row.purchase_sub_size}
-                          onChange={(e) =>
-                            handlePaymentChange(
-                              e,
-                              rowIndex,
-                              "purchase_sub_size"
-                            )
-                          }
-                          placeholder="Enter Size"
-                          disabled
-                        />
-                      </TableCell>
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Input
-                          className="bg-white border border-gray-300"
-                          value={row.purchase_sub_brand}
-                          onChange={(e) =>
-                            handlePaymentChange(
-                              e,
-                              rowIndex,
-                              "purchase_sub_brand"
-                            )
-                          }
-                          placeholder="Enter Brand"
-                          disabled
-                        />
-                      </TableCell>
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Input
-                          className="bg-white border border-gray-300"
-                          value={row.purchase_sub_weight}
-                          onChange={(e) =>
-                            handlePaymentChange(
-                              e,
-                              rowIndex,
-                              "purchase_sub_weight"
-                            )
-                          }
-                          placeholder="Enter Weight"
-                          disabled
-                        />
-                      </TableCell>
                       <TableCell className="px-4 py-2 min-w-28 ">
                         <Input
                           className="bg-white border border-gray-300"
@@ -702,32 +711,40 @@ const EditPurchase = () => {
                           placeholder="Enter Box"
                           type="number"
                         />
+                        {row.purchase_sub_item && (
+                          <div className="text-sm text-black mt-1">
+                            • {row.purchase_sub_brand}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="p-2 border">
-                        <Button
-                          variant="ghost"
-                          onClick={() => removeRow(rowIndex)}
-                          disabled={invoiceData.length === 1}
-                          className="text-red-500 "
-                          type="button"
-                        >
-                          <MinusCircle className="h-4 w-4" />
-                        </Button>
+                        <TableCell className="p-2 ">
+                          {row.id ? (
+                            <Button
+                              variant="ghost"
+                              onClick={() => handleDeleteRow(row.id)}
+                              className="text-red-500"
+                              type="button"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              onClick={() => removeRow(rowIndex)}
+                              disabled={invoiceData.length === 1}
+                              className="text-red-500 "
+                              type="button"
+                            >
+                              <MinusCircle className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              <div className="mt-4 flex justify-end">
-                <Button
-                  type="button"
-                  onClick={addRow}
-                  className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Add Product
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -736,7 +753,7 @@ const EditPurchase = () => {
           <Button
             type="submit"
             className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
-            disabled={createBranchMutation.isPending}
+            disabled={invoiceData.length < 1 || createBranchMutation.isPending}
           >
             {createBranchMutation.isPending
               ? "Submitting..."
@@ -744,6 +761,26 @@ const EditPurchase = () => {
           </Button>
         </div>
       </form>
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              purchase.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className={`${ButtonConfig.backgroundColor}  ${ButtonConfig.textColor} text-black hover:bg-red-600`}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Page>
   );
 };

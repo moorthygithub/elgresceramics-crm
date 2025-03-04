@@ -1,48 +1,34 @@
 import Page from "@/app/dashboard/page";
-import React, { useCallback, useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { z } from "zod";
-import { Card, CardContent } from "@/components/ui/card";
+import { MemoizedProductSelect } from "@/components/common/MemoizedProductSelect";
+import { MemoizedSelect } from "@/components/common/MemoizedSelect";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { ProgressBar } from "@/components/spinner/ProgressBar";
-import { ButtonConfig } from "@/config/ButtonConfig";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import ReactSelect from "react-select";
-import BASE_URL from "@/config/BaseUrl";
-import {
-  ChevronDown,
-  ChevronsUpDown,
-  MinusCircle,
-  PlusCircle,
-  SquarePlus,
-} from "lucide-react";
 import {
   Table,
-  TableHeader,
-  TableRow,
-  TableHead,
   TableBody,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import CreateCategory from "../master/category/CreateCategory";
-import CreateItem from "../master/item/CreateItem";
-import CreateBuyer from "../master/buyer/CreateBuyer";
+import BASE_URL from "@/config/BaseUrl";
+import { ButtonConfig } from "@/config/ButtonConfig";
+import { useToast } from "@/hooks/use-toast";
 import {
   useFetchBuyers,
   useFetchCategory,
   useFetchItems,
 } from "@/hooks/useApi";
+import { useMutation } from "@tanstack/react-query";
+import { MinusCircle, PlusCircle, SquarePlus } from "lucide-react";
 import moment from "moment";
+import { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+import CreateBuyer from "../master/buyer/CreateBuyer";
+import CreateItem from "../master/item/CreateItem";
+import { Textarea } from "@/components/ui/textarea";
 // Validation Schema
 
 const productRowSchema = z.object({
@@ -59,7 +45,7 @@ const contractFormSchema = z.object({
   purchase_buyer_name: z.string().min(1, "Buyer Name is required"),
   purchase_buyer_city: z.string().min(1, "City is required"),
   purchase_ref_no: z.string().min(1, "Ref is required"),
-  purchase_vehicle_no: z.string().min(1, "Vehicle No is required"),
+  purchase_vehicle_no: z.any().optional(),
   purchase_remark: z.any().optional(),
   purchase_product_data: z.array(productRowSchema),
 });
@@ -97,96 +83,11 @@ const createBranch = async (data) => {
 
   return responseData;
 };
-const MemoizedSelect = React.memo(
-  ({ value, onChange, options, placeholder }) => {
-    const selectOptions = options.map((option) => ({
-      value: option.value,
-      label: option.label,
-    }));
 
-    const selectedOption = selectOptions.find(
-      (option) => option.value === value
-    );
-
-    const customStyles = {
-      control: (provided, state) => ({
-        ...provided,
-        minHeight: "36px",
-        borderRadius: "6px",
-        borderColor: state.isFocused ? "black" : "#e5e7eb",
-        boxShadow: state.isFocused ? "black" : "none",
-        "&:hover": {
-          borderColor: "none",
-          cursor: "text",
-        },
-      }),
-      option: (provided, state) => ({
-        ...provided,
-        fontSize: "14px",
-        backgroundColor: state.isSelected
-          ? "#A5D6A7"
-          : state.isFocused
-          ? "#f3f4f6"
-          : "white",
-        color: state.isSelected ? "black" : "#1f2937",
-        "&:hover": {
-          backgroundColor: "#EEEEEE",
-          color: "black",
-        },
-      }),
-
-      menu: (provided) => ({
-        ...provided,
-        borderRadius: "6px",
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-      }),
-      placeholder: (provided) => ({
-        ...provided,
-        color: "#616161",
-        fontSize: "14px",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "start",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }),
-      singleValue: (provided) => ({
-        ...provided,
-        color: "black",
-        fontSize: "14px",
-      }),
-    };
-
-    const DropdownIndicator = (props) => {
-      return (
-        <div {...props.innerProps}>
-          <ChevronsUpDown className="h-4 w-4 mr-3 text-gray-500" />
-        </div>
-      );
-    };
-
-    return (
-      <ReactSelect
-        value={selectedOption}
-        onChange={(selected) => onChange(selected ? selected.value : "")}
-        options={selectOptions}
-        placeholder={placeholder}
-        styles={customStyles}
-        components={{
-          IndicatorSeparator: () => null,
-          DropdownIndicator,
-        }}
-      />
-    );
-  }
-);
 const CreatePurchase = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const today = moment().format("YYYY-MM-DD");
-  const [itemData, setItemData] = useState([]);
   const [formData, setFormData] = useState({
     purchase_date: today,
     purchase_buyer_name: "",
@@ -283,29 +184,27 @@ const CreatePurchase = () => {
   });
 
   const { data: buyerData } = useFetchBuyers();
-  const { data: categoryData } = useFetchCategory();
   const { data: itemsData } = useFetchItems();
 
-  const handlePaymentChange = (e, rowIndex, fieldName) => {
-    const value = e.target.value;
+  const handlePaymentChange = (selectedValue, rowIndex, fieldName) => {
+    let value;
+
+    if (selectedValue && selectedValue.target) {
+      value = selectedValue.target.value;
+    } else {
+      value = selectedValue;
+    }
+
+    console.log("Selected Value:", value);
+
     const updatedData = [...invoiceData];
-
-    // if (fieldName === "purchase_sub_category") {
-    //   updatedData[rowIndex][fieldName] = value;
-    //   setInvoiceData(updatedData);
-
-    //   const filteredItems = itemsData?.items?.filter(
-    //     (item) => item.item_category === value
-    //   );
-
-    //   setItemData(filteredItems || []);
-    //   console.log("Filtered Items:", filteredItems);
-    // }
 
     if (fieldName === "purchase_sub_item") {
       updatedData[rowIndex][fieldName] = value;
 
-      const selectedItem = itemsData.find((item) => item.item_name === value);
+      const selectedItem = itemsData?.items?.find(
+        (item) => item.item_name === value
+      );
 
       if (selectedItem) {
         updatedData[rowIndex]["purchase_sub_category"] =
@@ -316,7 +215,6 @@ const CreatePurchase = () => {
       }
 
       setInvoiceData(updatedData);
-      console.log(updatedData, "updatedData");
     } else {
       if (["purchase_sub_weight", "purchase_sub_box"].includes(fieldName)) {
         if (!/^\d*$/.test(value)) {
@@ -332,24 +230,29 @@ const CreatePurchase = () => {
 
   const handleInputChange = (e, field) => {
     const value = e.target ? e.target.value : e;
-    if (selectedItem) {
-      updatedData[rowIndex]["purchase_sub_category"] =
-        selectedItem.item_category;
-      updatedData[rowIndex]["purchase_sub_size"] = selectedItem.item_size;
-      updatedData[rowIndex]["purchase_sub_brand"] = selectedItem.item_brand;
-      updatedData[rowIndex]["purchase_sub_weight"] = selectedItem.item_weight;
+
+    let updatedFormData = { ...formData, [field]: value };
+
+    if (field === "purchase_buyer_name") {
+      const selectedBuyer = buyerData?.buyers.find(
+        (buyer) => buyer.buyer_name === value
+      );
+
+      if (selectedBuyer) {
+        updatedFormData.purchase_buyer_city = selectedBuyer.buyer_city;
+      } else {
+        updatedFormData.purchase_buyer_city = "";
+      }
     }
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+
+    setFormData(updatedFormData);
   };
 
   const fieldLabels = {
     purchase_date: "Purchase Date",
     purchase_buyer_name: "Buyer Name",
     purchase_buyer_city: "Buyer City",
-    purchase_ref_no: "Ref No",
+    purchase_ref_no: "Bill Ref No",
     purchase_vehicle_no: "Vehicle No",
     purchase_sub_category: "Category",
     purchase_sub_item: "Item",
@@ -421,7 +324,7 @@ const CreatePurchase = () => {
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Purchase Date<span className="text-red-500">*</span>
+                    Date<span className="text-red-500">*</span>
                   </label>
                   <Input
                     className="bg-white"
@@ -446,9 +349,7 @@ const CreatePurchase = () => {
                 </label>
                 <MemoizedSelect
                   value={formData.purchase_buyer_name}
-                  onChange={(value) =>
-                    handleSelectChange("purchase_buyer_name", value)
-                  }
+                  onChange={(e) => handleInputChange(e, "purchase_buyer_name")}
                   options={
                     buyerData?.buyers?.map((buyer) => ({
                       value: buyer.buyer_name,
@@ -469,6 +370,7 @@ const CreatePurchase = () => {
                   <Input
                     className="bg-white"
                     value={formData.purchase_buyer_city}
+                    disabled
                     onChange={(e) =>
                       handleInputChange(e, "purchase_buyer_city")
                     }
@@ -482,13 +384,13 @@ const CreatePurchase = () => {
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Ref No<span className="text-red-500">*</span>
+                   Ref No<span className="text-red-500">*</span>
                   </label>
                   <Input
                     className="bg-white"
                     value={formData.purchase_ref_no}
                     onChange={(e) => handleInputChange(e, "purchase_ref_no")}
-                    placeholder="Enter  Ref No"
+                    placeholder="Enter Ref No"
                   />
                 </div>
               </div>
@@ -497,7 +399,7 @@ const CreatePurchase = () => {
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Vehicle No<span className="text-red-500">*</span>
+                    Vehicle No
                   </label>
                   <Input
                     className="bg-white"
@@ -509,14 +411,14 @@ const CreatePurchase = () => {
                   />
                 </div>
               </div>
-              <div>
+              <div className="md:col-span-3">
                 <div>
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
                   >
-                    Remark<span className="text-red-500">*</span>
+                    Remark
                   </label>
-                  <Input
+                  <Textarea
                     className="bg-white"
                     value={formData.purchase_remark}
                     onChange={(e) => handleInputChange(e, "purchase_remark")}
@@ -533,29 +435,19 @@ const CreatePurchase = () => {
                     <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
                       <div className="flex items-center">
                         <SquarePlus className="h-3 w-3 mr-1 text-red-600" />
-                        <CreateCategory />
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      <div className="flex items-center">
-                        <SquarePlus className="h-3 w-3 mr-1 text-red-600" />
                         <CreateItem />
                       </div>
                     </TableHead>
+
                     <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Size
+                      Box<span className="text-red-500 ml-1">*</span>
                     </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Brand
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Weight
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Box
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Action{" "}
+                    <TableHead className="text-sm font-semibold py-3 px-4 w-1/6 text-center">
+                      Action
+                      <PlusCircle
+                        onClick={addRow}
+                        className="inline-block ml-2 cursor-pointer text-blue-500 hover:text-gray-800 h-4 w-4"
+                      />
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -566,37 +458,15 @@ const CreatePurchase = () => {
                       className="border-t border-gray-200 hover:bg-gray-50"
                     >
                       <TableCell className="px-4 py-2">
-                        <Select
-                          value={row.purchase_sub_category}
-                          onValueChange={(value) => {
-                            handlePaymentChange(
-                              { target: { value } },
-                              rowIndex,
-                              "purchase_sub_category"
-                            );
-                          }}
-                        >
-                          <SelectTrigger className="bg-white border border-gray-300">
-                            <SelectValue placeholder="Select Payment">
-                              {row.purchase_sub_category || "Select Payment"}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="bg-white">
-                            {categoryData?.category?.map((product, index) => (
-                              <SelectItem key={index} value={product.category}>
-                                {product.category}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-
-                      <TableCell className="px-4 py-2">
                         <div>
-                          <MemoizedSelect
-                            value={formData.purchase_sub_item}
-                            onChange={(value) =>
-                              handleSelectChange("purchase_sub_item", value)
+                          <MemoizedProductSelect
+                            value={row.purchase_sub_item}
+                            onChange={(e) =>
+                              handlePaymentChange(
+                                e,
+                                rowIndex,
+                                "purchase_sub_item"
+                              )
                             }
                             options={
                               itemsData?.items?.map((product) => ({
@@ -607,53 +477,14 @@ const CreatePurchase = () => {
                             placeholder="Select Item"
                           />
                         </div>
+                        {row.purchase_sub_item && (
+                          <div className="text-sm text-black mt-1">
+                            •{row.purchase_sub_category} •{" "}
+                            {row.purchase_sub_size}
+                          </div>
+                        )}
                       </TableCell>
 
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Input
-                          className="bg-white border border-gray-300"
-                          value={row.purchase_sub_size}
-                          onChange={(e) =>
-                            handlePaymentChange(
-                              e,
-                              rowIndex,
-                              "purchase_sub_size"
-                            )
-                          }
-                          placeholder="Enter Size"
-                          disabled
-                        />
-                      </TableCell>
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Input
-                          className="bg-white border border-gray-300"
-                          value={row.purchase_sub_brand}
-                          onChange={(e) =>
-                            handlePaymentChange(
-                              e,
-                              rowIndex,
-                              "purchase_sub_brand"
-                            )
-                          }
-                          placeholder="Enter Brand"
-                          disabled
-                        />
-                      </TableCell>
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Input
-                          className="bg-white border border-gray-300"
-                          value={row.purchase_sub_weight}
-                          onChange={(e) =>
-                            handlePaymentChange(
-                              e,
-                              rowIndex,
-                              "purchase_sub_weight"
-                            )
-                          }
-                          placeholder="Enter Weight"
-                          disabled
-                        />
-                      </TableCell>
                       <TableCell className="px-4 py-2 min-w-28 ">
                         <Input
                           className="bg-white border border-gray-300"
@@ -664,6 +495,11 @@ const CreatePurchase = () => {
                           placeholder="Enter Box"
                           type="number"
                         />
+                        {row.purchase_sub_item && (
+                          <div className="text-sm text-black mt-1">
+                            • {row.purchase_sub_brand}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="p-2 border">
                         <Button
@@ -680,16 +516,6 @@ const CreatePurchase = () => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <Button
-                type="button"
-                onClick={addRow}
-                className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-              >
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
             </div>
           </CardContent>
         </Card>

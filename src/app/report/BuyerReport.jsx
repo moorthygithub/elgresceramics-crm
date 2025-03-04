@@ -13,22 +13,24 @@ import { useReactToPrint } from "react-to-print";
 const BuyerReport = () => {
   const containerRef = useRef();
   const { toast } = useToast();
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [sortedData, setSortedData] = useState([]);
 
   // Fetch data from API
   const fetchBuyerData = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/report-buyer-data`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(
+        `${BASE_URL}/api/report-buyer-data`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       return response.data.buyer;
     } catch (error) {
       console.error("Error fetching buyer data:", error);
-      return [];
+      return null;
     }
   };
 
@@ -42,38 +44,20 @@ const BuyerReport = () => {
     queryFn: fetchBuyerData,
   });
 
-  // Update sortedData when buyerData changes
-  useEffect(() => {
-    if (buyerData) {
-      setSortedData(buyerData);
-    }
-  }, [buyerData]);
-
-  // Sorting function
-  const handleSort = () => {
-    if (!sortedData) return;
-
-    const sorted = [...sortedData].sort((a, b) => {
-      if (sortOrder === "asc") {
-        return a.buyer_status.localeCompare(b.buyer_status);
-      } else {
-        return b.buyer_status.localeCompare(a.buyer_status);
-      }
-    });
-
-    setSortedData(sorted);
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-  };
   const onSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.get(`${BASE_URL}/api/download-buyer-data`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        responseType: "blob",
-      });
+      const response = await axios.post(
+        `${BASE_URL}/api/download-buyer-data`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          responseType: "blob", // Must be inside config object
+        }
+      );
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -81,6 +65,7 @@ const BuyerReport = () => {
       link.setAttribute("download", "buyer.csv");
       document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link); // Remove the link after clicking
 
       toast({
         title: "Success",
@@ -94,6 +79,7 @@ const BuyerReport = () => {
       });
     }
   };
+
   const handlePrintPdf = useReactToPrint({
     content: () => containerRef.current,
     documentTitle: "Product_Stock",
@@ -179,7 +165,10 @@ const BuyerReport = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto text-[11px] grid grid-cols-1" ref={containerRef}>
+        <div
+          className="overflow-x-auto text-[11px] grid grid-cols-1"
+          ref={containerRef}
+        >
           <h1 className="text-center text-2xl font-semibold mb-3 hidden print:block">
             Buyer Summary
           </h1>
@@ -187,25 +176,19 @@ const BuyerReport = () => {
             <thead className="bg-gray-100">
               <tr>
                 <th className="border border-black px-2 py-2 text-center">
-                  Name
+                  Buyer Name
                 </th>
                 <th className="border border-black px-2 py-2 text-center">
                   City
                 </th>
-                <th
-                  className="border border-black px-2 py-2 text-center cursor-pointer"
-                  onClick={handleSort}
-                >
+                <th className="border border-black px-2 py-2 text-center cursor-pointer">
                   Status{" "}
-                  <span className="print:hidden">
-                    {sortOrder === "asc" ? "▲" : "▼"}
-                  </span>
                 </th>
               </tr>
             </thead>
             <tbody>
-              {sortedData && sortedData.length > 0 ? (
-                sortedData.map((buyer, index) => (
+              {buyerData && buyerData.length > 0 ? (
+                buyerData.map((buyer, index) => (
                   <tr key={buyer.id || index} className="hover:bg-gray-50">
                     <td className="border border-black px-2 py-2">
                       {buyer.buyer_name}
