@@ -1,26 +1,6 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Loader2,
-  Edit,
-  Search,
-  SquarePlus,
-  Edit2,
-  View,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -36,13 +16,37 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import BASE_URL from "@/config/BaseUrl";
+import { useQuery } from "@tanstack/react-query";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import axios from "axios";
+import {
+  ChevronDown,
+  Edit,
+  Loader2,
+  Search,
+  SquarePlus,
+  View,
+} from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
+import { encryptId } from "@/components/common/Encryption";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
-import { encryptId } from "@/components/common/Encryption";
 // import CreateItem from "./CreateItem";
 // import EditItem from "./EditItem";
 
@@ -128,31 +132,50 @@ const SalesList = () => {
         const SalesId = row.original.id;
 
         return (
-          <div className="flex flex-row">
-            <Button
-              variant="ghost"
-              size="icon"
-              // onClick={() => navigate(`/sales/edit/${SalesId}`)}
-              onClick={() => {
-                const encryptedId = encryptId(SalesId);
+          <div className="flex flex-row space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const encryptedId = encryptId(SalesId);
+                      navigate(
+                        `/dispatch/edit/${encodeURIComponent(encryptedId)}`
+                      );
+                    }}
+                  >
+                    <Edit />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Dispatch</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-                navigate(`/dispatch/edit/${encodeURIComponent(encryptedId)}`);
-              }}
-            >
-              <Edit />
-            </Button>{" "}
-            <Button
-              variant="ghost"
-              size="icon"
-              // onClick={() => navigate(`/sales/edit/${SalesId}`)}
-              onClick={() => {
-                const encryptedId = encryptId(SalesId);
-
-                navigate(`/dispatch/view/${encodeURIComponent(encryptedId)}`);
-              }}
-            >
-              <View />
-            </Button>{" "}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const encryptedId = encryptId(SalesId);
+                      navigate(
+                        `/dispatch/view/${encodeURIComponent(encryptedId)}`
+                      );
+                    }}
+                  >
+                    <View />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View Dispatch</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         );
       },
@@ -331,7 +354,7 @@ const SalesList = () => {
         {/* row slection and pagintaion button  */}
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
-            Total State : &nbsp;
+            Total Sales : &nbsp;
             {table.getFilteredRowModel().rows.length}
           </div>
           <div className="space-x-2">

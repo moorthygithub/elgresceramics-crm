@@ -28,19 +28,24 @@ import {
 } from "@tanstack/react-table";
 import axios from "axios";
 import {
-  ArrowUpDown,
   ChevronDown,
   Edit,
   Loader2,
   Search,
-  SquarePlus,
+  SquarePlus
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { encryptId } from "@/components/common/Encryption";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
-import { encryptId } from "@/components/common/Encryption";
 // import CreateItem from "./CreateItem";
 // import EditItem from "./EditItem";
 
@@ -127,17 +132,27 @@ const PurchaseList = () => {
 
         return (
           <div className="flex flex-row">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                const encryptedId = encryptId(PurchaseId);
-
-                navigate(`/purchase/edit/${encodeURIComponent(encryptedId)}`);
-              }}
-            >
-              <Edit />
-            </Button>{" "}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const encryptedId = encryptId(PurchaseId);
+                      navigate(
+                        `/purchase/edit/${encodeURIComponent(encryptedId)}`
+                      );
+                    }}
+                  >
+                    <Edit />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Purchase</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         );
       },
@@ -316,7 +331,7 @@ const PurchaseList = () => {
         {/* row slection and pagintaion button  */}
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
-            Total State : &nbsp;
+            Total Purchase : &nbsp;
             {table.getFilteredRowModel().rows.length}
           </div>
           <div className="space-x-2">
