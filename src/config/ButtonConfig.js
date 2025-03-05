@@ -8,5 +8,5 @@ export const ButtonConfig = {
   tableHeader: "bg-blue-200",
   tableLabel: "text-black",
   loginBackground: "bg-black",
-  loginext: "text-white",
+  loginText: "text-white",
 };
