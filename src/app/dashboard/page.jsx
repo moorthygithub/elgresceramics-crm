@@ -38,7 +38,7 @@ export default function Page({ children }) {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbItem >
                   {/* <BreadcrumbLink href="#" onClick={handleBackClick} >
                     Home
                   </BreadcrumbLink> */}
