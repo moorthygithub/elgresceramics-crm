@@ -29,6 +29,7 @@ import { z } from "zod";
 import CreateBuyer from "../master/buyer/CreateBuyer";
 import CreateItem from "../master/item/CreateItem";
 import { Textarea } from "@/components/ui/textarea";
+import { PURCHASE_CREATE } from "@/api";
 // Validation Schema
 
 const productRowSchema = z.object({
@@ -66,7 +67,7 @@ const createBranch = async (data) => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("No authentication token found");
 
-  const response = await fetch(`${BASE_URL}/api/purchases`, {
+  const response = await fetch(`${PURCHASE_CREATE}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -520,7 +521,7 @@ const CreatePurchase = () => {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col items-end">
+        <div className="flex flex-row items-center gap-2 justify-end ">
           <Button
             type="submit"
             className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
@@ -529,6 +530,13 @@ const CreatePurchase = () => {
             {createBranchMutation.isPending
               ? "Submitting..."
               : "Create Purchase"}
+          </Button>
+          <Button
+            type="button" 
+            onClick={()=>{navigate('/purchase')}} 
+            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
+          >
+          Go Back
           </Button>
         </div>
       </form>

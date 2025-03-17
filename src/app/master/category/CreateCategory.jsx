@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/popover";
 import { useLocation } from "react-router-dom";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { CATEGORY_CREATE } from "@/api";
 
 const CreateCategory = () => {
   const [open, setOpen] = useState(false);
@@ -47,7 +48,7 @@ const CreateCategory = () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(`${BASE_URL}/api/categorys`, formData, {
+      const response = await axios.post(`${CATEGORY_CREATE}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useReactToPrint } from "react-to-print";
+import { BUYER_DOWNLOAD, BUYER_REPORT } from "@/api";
+import Loader from "@/components/loader/Loader";
 
 const BuyerReport = () => {
   const containerRef = useRef();
@@ -19,7 +21,7 @@ const BuyerReport = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${BASE_URL}/api/report-buyer-data`,
+        `${BUYER_REPORT}`,
         {},
         {
           headers: {
@@ -49,7 +51,7 @@ const BuyerReport = () => {
 
     try {
       const response = await axios.post(
-        `${BASE_URL}/api/download-buyer-data`,
+        `${BUYER_DOWNLOAD}`,
         {},
         {
           headers: {
@@ -107,10 +109,7 @@ const BuyerReport = () => {
     return (
       <Page>
         <div className="flex justify-center items-center h-full">
-          <Button disabled>
-            <Loader2 className=" h-4 w-4 animate-spin" />
-            Loading Buyer
-          </Button>
+         <Loader/>
         </div>
       </Page>
     );

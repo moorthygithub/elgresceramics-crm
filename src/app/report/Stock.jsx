@@ -12,6 +12,8 @@ import { useReactToPrint } from "react-to-print";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
 import { Input } from "@/components/ui/input";
+import { STOCK_REPORT } from "@/api";
+import Loader from "@/components/loader/Loader";
 
 const Stock = () => {
   const containerRef = useRef();
@@ -24,7 +26,7 @@ const Stock = () => {
   const fetchBuyerData = async () => {
     const token = localStorage.getItem("token");
     const response = await axios.post(
-      `${BASE_URL}/api/stock`,
+      `${STOCK_REPORT}`,
       { ...formData },
       {
         headers: {
@@ -68,18 +70,15 @@ const Stock = () => {
     `,
   });
 
-  if (isLoading) {
-    return (
-      <Page>
-        <div className="flex justify-center items-center h-full">
-          <Button disabled>
-            <Loader2 className=" h-4 w-4 animate-spin" />
-            Loading Stock
-          </Button>
-        </div>
-      </Page>
-    );
-  }
+    if (isLoading) {
+      return (
+        <Page>
+          <div className="flex justify-center items-center h-full">
+           <Loader/>
+          </div>
+        </Page>
+      );
+    }
 
   if (isError) {
     return (

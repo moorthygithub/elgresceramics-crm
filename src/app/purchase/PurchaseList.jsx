@@ -46,6 +46,8 @@ import {
 } from "@/components/ui/tooltip";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
+import { navigateToPurchaseEdit, PURCHASE_LIST } from "@/api";
+import Loader from "@/components/loader/Loader";
 // import CreateItem from "./CreateItem";
 // import EditItem from "./EditItem";
 
@@ -59,7 +61,7 @@ const PurchaseList = () => {
     queryKey: ["purchase"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/purchases-list`, {
+      const response = await axios.get(`${PURCHASE_LIST}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data.purchase;
@@ -128,7 +130,7 @@ const PurchaseList = () => {
       id: "actions",
       header: "Action",
       cell: ({ row }) => {
-        const PurchaseId = row.original.id;
+        const purchaseId = row.original.id;
 
         return (
           <div className="flex flex-row">
@@ -139,10 +141,7 @@ const PurchaseList = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => {
-                      const encryptedId = encryptId(PurchaseId);
-                      navigate(
-                        `/purchase/edit/${encodeURIComponent(encryptedId)}`
-                      );
+                      navigateToPurchaseEdit(navigate,purchaseId)
                     }}
                   >
                     <Edit />
@@ -189,10 +188,7 @@ const PurchaseList = () => {
     return (
       <Page>
         <div className="flex justify-center items-center h-full">
-          <Button disabled>
-            <Loader2 className=" h-4 w-4 animate-spin" />
-            Loading purchase
-          </Button>
+         <Loader/>
         </div>
       </Page>
     );

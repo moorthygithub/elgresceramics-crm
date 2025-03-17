@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ITEM_CREATE } from "@/api";
 
 const CreateItem = () => {
   const [open, setOpen] = useState(false);
@@ -92,7 +93,7 @@ const CreateItem = () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(`${BASE_URL}/api/items`, formData, {
+      const response = await axios.post(`${ITEM_CREATE}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

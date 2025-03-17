@@ -34,6 +34,8 @@ import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import CreateCategory from "./CreateCategory";
+import { CATEGORY_LIST } from "@/api";
+import Loader from "@/components/loader/Loader";
 
 const CategoryList = () => {
   const {
@@ -45,7 +47,7 @@ const CategoryList = () => {
     queryKey: ["category"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/categorys-list`, {
+      const response = await axios.get(`${CATEGORY_LIST}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data.category;
@@ -208,18 +210,15 @@ const CategoryList = () => {
   });
 
   // Render loading state
-  if (isLoading) {
-    return (
-      <Page>
-        <div className="flex justify-center items-center h-full">
-          <Button disabled>
-            <Loader2 className=" h-4 w-4 animate-spin" />
-            Loading Category
-          </Button>
-        </div>
-      </Page>
-    );
-  }
+    if (isLoading) {
+      return (
+        <Page>
+          <div className="flex justify-center items-center h-full">
+           <Loader/>
+          </div>
+        </Page>
+      );
+    }
 
   // Render error state
   if (isError) {

@@ -26,6 +26,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ButtonConfig } from "@/config/ButtonConfig";
+import { BUYER_EDIT_GET, BUYER_EDIT_SUMBIT } from "@/api";
 const EditBuyer = ({ buyerId }) => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +44,7 @@ const EditBuyer = ({ buyerId }) => {
     setIsFetching(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/buyers/${buyerId}`, {
+      const response = await axios.get(`${BUYER_EDIT_GET}/${buyerId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -102,7 +103,7 @@ const EditBuyer = ({ buyerId }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        `${BASE_URL}/api/buyers/${buyerId}`,
+        `${BUYER_EDIT_SUMBIT}/${buyerId}`,
         formData,
         {
           headers: { Authorization: `Bearer ${token}` },
