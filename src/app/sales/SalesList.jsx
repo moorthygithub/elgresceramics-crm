@@ -47,6 +47,8 @@ import { useNavigate } from "react-router-dom";
 import { encryptId } from "@/components/common/Encryption";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
+import { navigateTOSalesEdit, navigateTOSalesView, SALES_LIST } from "@/api";
+import Loader from "@/components/loader/Loader";
 // import CreateItem from "./CreateItem";
 // import EditItem from "./EditItem";
 
@@ -60,7 +62,7 @@ const SalesList = () => {
     queryKey: ["sales"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/sales-list`, {
+      const response = await axios.get(`${SALES_LIST}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data.sales;
@@ -129,7 +131,7 @@ const SalesList = () => {
       id: "actions",
       header: "Action",
       cell: ({ row }) => {
-        const SalesId = row.original.id;
+        const salesId = row.original.id;
 
         return (
           <div className="flex flex-row space-x-2">
@@ -140,10 +142,7 @@ const SalesList = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => {
-                      const encryptedId = encryptId(SalesId);
-                      navigate(
-                        `/dispatch/edit/${encodeURIComponent(encryptedId)}`
-                      );
+                      navigateTOSalesEdit(navigate, salesId);
                     }}
                   >
                     <Edit />
@@ -162,10 +161,7 @@ const SalesList = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => {
-                      const encryptedId = encryptId(SalesId);
-                      navigate(
-                        `/dispatch/view/${encodeURIComponent(encryptedId)}`
-                      );
+                      navigateTOSalesView(navigate, salesId);
                     }}
                   >
                     <View />
@@ -212,10 +208,7 @@ const SalesList = () => {
     return (
       <Page>
         <div className="flex justify-center items-center h-full">
-          <Button disabled>
-            <Loader2 className=" h-4 w-4 animate-spin" />
-            Loading Dispatch
-          </Button>
+         <Loader/>
         </div>
       </Page>
     );

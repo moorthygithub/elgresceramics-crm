@@ -37,6 +37,7 @@ import { MemoizedSelect } from "@/components/common/MemoizedSelect";
 import { Textarea } from "@/components/ui/textarea";
 import CreateBuyer from "../master/buyer/CreateBuyer";
 import { decryptId } from "@/components/common/Encryption";
+import { fetchSalesById, updateSalesEdit } from "@/api";
 // Validation Schema
 
 const BranchHeader = () => {
@@ -51,30 +52,12 @@ const BranchHeader = () => {
   );
 };
 
-const createBranch = async ({ decryptedId, data }) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(`${BASE_URL}/api/sales/${decryptedId}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  const responseData = await response.json();
-  if (!response.ok) throw responseData;
-
-  return responseData;
-};
 
 const EditSales = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { id } = useParams();
-  const decryptedId = decryptId(id);
+
 
   const [itemData, setItemData] = useState([]);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -100,7 +83,7 @@ const EditSales = () => {
     },
   ]);
   const createBranchMutation = useMutation({
-    mutationFn: createBranch,
+    mutationFn: (updateData) => updateSalesEdit( id, updateData),
     onSuccess: (response) => {
       if (response.code == 200) {
         toast({
@@ -121,26 +104,26 @@ const EditSales = () => {
           variant: "destructive",
         });
       }
-      setFormData({
-        sales_date: "",
-        sales_buyer_name: "",
-        sales_buyer_city: "",
-        sales_ref_no: "",
-        sales_vehicle_no: "",
-        sales_remark: "",
-        sales_status: "",
-      });
+      // setFormData({
+      //   sales_date: "",
+      //   sales_buyer_name: "",
+      //   sales_buyer_city: "",
+      //   sales_ref_no: "",
+      //   sales_vehicle_no: "",
+      //   sales_remark: "",
+      //   sales_status: "",
+      // });
 
-      setInvoiceData([
-        {
-          sales_sub_category: "",
-          sales_sub_item: "",
-          sales_sub_size: "",
-          sales_sub_brand: "",
-          sales_sub_weight: "",
-          sales_sub_box: "",
-        },
-      ]);
+      // setInvoiceData([
+      //   {
+      //     sales_sub_category: "",
+      //     sales_sub_item: "",
+      //     sales_sub_size: "",
+      //     sales_sub_brand: "",
+      //     sales_sub_weight: "",
+      //     sales_sub_box: "",
+      //   },
+      // ]);
     },
     onError: (error) => {
       console.error("API Error:", error);
@@ -162,17 +145,8 @@ const EditSales = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["salesByid", decryptedId],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${BASE_URL}/api/sales/${decryptedId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error("Failed to fetch sales order");
-      return response.json();
-    },
+    queryKey: ["salesByid", id],
+     queryFn: () => fetchSalesById(id)
   });
 
   useEffect(() => {
@@ -367,7 +341,7 @@ const EditSales = () => {
         ...formData,
         sales_product_data: invoiceData,
       };
-      createBranchMutation.mutate({ decryptedId, data: updateData });
+      createBranchMutation.mutate(updateData );
     } catch (error) {
       if (error instanceof z.ZodError) {
         const groupedErrors = error.errors.reduce((acc, err) => {
@@ -559,7 +533,7 @@ const EditSales = () => {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col items-end">
+        <div className="flex flex-row items-center gap-2 justify-end">
           <Button
             type="submit"
             className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
@@ -567,6 +541,13 @@ const EditSales = () => {
           >
             {createBranchMutation.isPending ? "Submitting..." : "Update Dispatch"}
           </Button>
+           <Button
+                      type="button" 
+                      onClick={()=>{navigate('/dispatch')}} 
+                      className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
+                    >
+                    Go Back
+                    </Button>
         </div>
       </form>
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>

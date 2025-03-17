@@ -41,6 +41,7 @@ import { z } from "zod";
 import CreateBuyer from "../master/buyer/CreateBuyer";
 import CreateItem from "../master/item/CreateItem";
 import { decryptId } from "@/components/common/Encryption";
+import { fetchPurchaseById, updatePurchaseEdit } from "@/api";
 // Validation Schema
 
 const BranchHeader = () => {
@@ -55,30 +56,12 @@ const BranchHeader = () => {
   );
 };
 
-const createBranch = async ({ decryptedId, data }) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(`${BASE_URL}/api/purchases/${decryptedId}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  const responseData = await response.json();
-  if (!response.ok) throw responseData;
-
-  return responseData;
-};
 
 const EditPurchase = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { id } = useParams();
-  const decryptedId = decryptId(id);
+  // const decryptedId = decryptId(id);
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
@@ -105,7 +88,7 @@ const EditPurchase = () => {
   ]);
 
   const createBranchMutation = useMutation({
-    mutationFn: createBranch,
+   mutationFn: (updateData) => updatePurchaseEdit( id, updateData),
     onSuccess: (response) => {
       if (response.code == 200) {
         toast({
@@ -126,25 +109,7 @@ const EditPurchase = () => {
           variant: "destructive",
         });
       }
-      setFormData({
-        purchase_date: "",
-        purchase_buyer_name: "",
-        purchase_buyer_city: "",
-        purchase_ref_no: "",
-        purchase_vehicle_no: "",
-        purchase_remark: "",
-      });
-
-      setInvoiceData([
-        {
-          purchase_sub_category: "",
-          purchase_sub_item: "",
-          purchase_sub_size: "",
-          purchase_sub_brand: "",
-          purchase_sub_weight: 0,
-          purchase_sub_box: 0,
-        },
-      ]);
+    
     },
     onError: (error) => {
       console.error("API Error:", error);
@@ -209,17 +174,8 @@ const EditPurchase = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["purchaseByid", decryptedId],
-    queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${BASE_URL}/api/purchases/${decryptedId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error("Failed to fetch Purchase order");
-      return response.json();
-    },
+    queryKey: ["purchaseByid", id],
+     queryFn: () => fetchPurchaseById(id)
   });
 
   useEffect(() => {
@@ -456,7 +412,7 @@ const EditPurchase = () => {
         ...formData,
         purchase_product_data: invoiceData,
       };
-      createBranchMutation.mutate({ decryptedId, data: updateData });
+      createBranchMutation.mutate(updateData);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const groupedErrors = error.errors.reduce((acc, err) => {
@@ -749,7 +705,7 @@ const EditPurchase = () => {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col items-end">
+        <div className="flex flex-row items-center gap-2 justify-end">
           <Button
             type="submit"
             className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
@@ -758,6 +714,13 @@ const EditPurchase = () => {
             {createBranchMutation.isPending
               ? "Submitting..."
               : "Update Purchase"}
+          </Button>
+          <Button
+            type="button" 
+            onClick={()=>{navigate('/purchase')}} 
+            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
+          >
+          Go Back
           </Button>
         </div>
       </form>

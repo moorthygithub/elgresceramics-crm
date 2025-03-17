@@ -34,6 +34,8 @@ import { useNavigate } from "react-router-dom";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import CreateBuyer from "./CreateBuyer";
 import EditBuyer from "./EditBuyer ";
+import { BUYER_LIST } from "@/api";
+import Loader from "@/components/loader/Loader";
 
 const BuyerList = () => {
   const {
@@ -45,7 +47,7 @@ const BuyerList = () => {
     queryKey: ["buyers"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/buyers-list`, {
+      const response = await axios.get(`${BUYER_LIST}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data.buyers;
@@ -142,10 +144,7 @@ const BuyerList = () => {
     return (
       <Page>
         <div className="flex justify-center items-center h-full">
-          <Button disabled>
-            <Loader2 className=" h-4 w-4 animate-spin" />
-            Loading Buyer
-          </Button>
+         <Loader/>
         </div>
       </Page>
     );

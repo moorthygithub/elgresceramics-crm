@@ -41,6 +41,8 @@ import BASE_URL from "@/config/BaseUrl";
 
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
+import { DASHBOARD_LIST } from "@/api";
+import Loader from "@/components/loader/Loader";
 
 const Home = () => {
   const {
@@ -52,7 +54,7 @@ const Home = () => {
     queryKey: ["dashboard"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/dashboard`, {
+      const response = await axios.get(`${DASHBOARD_LIST}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;
@@ -222,10 +224,7 @@ const Home = () => {
     return (
       <Page>
         <div className="flex justify-center items-center h-full">
-          <Button disabled>
-            <Loader2 className=" h-4 w-4 animate-spin" />
-            Loading Home
-          </Button>
+         <Loader/>
         </div>
       </Page>
     );
