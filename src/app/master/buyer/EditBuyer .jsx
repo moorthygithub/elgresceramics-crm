@@ -147,6 +147,18 @@ const EditBuyer = ({ buyerId }) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
+
+ <div>
+                <div className="sm:hidden">
+                  <button
+                    variant="default"
+                    className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="hidden sm:block">
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -162,6 +174,8 @@ const EditBuyer = ({ buyerId }) => {
                   }`}
                 />
               </Button>
+              </div>
+              </div>
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent>

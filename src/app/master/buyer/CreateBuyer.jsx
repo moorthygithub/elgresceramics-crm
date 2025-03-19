@@ -87,12 +87,25 @@ const CreateBuyer = () => {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         {pathname === "/master/buyer" ? (
-          <Button
-            variant="default"
-            className={`md:ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-          >
-            <SquarePlus className="h-4 w-4 mr-2" /> Buyer
-          </Button>
+
+          <div>
+            <div className="sm:hidden">
+              <Button
+                variant="default"
+                className={`md:ml-2 bg-yellow-400 hover:bg-yellow-600 text-black rounded-l-full`}
+              >
+                <SquarePlus className="h-4 w-4" /> Buyer
+              </Button>
+            </div>
+            <div className="hidden sm:block">
+              <Button
+                variant="default"
+                className={`md:ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
+              >
+                <SquarePlus className="h-4 w-4 mr-2" /> Buyer
+              </Button>
+            </div>
+          </div>
         ) : pathname === "/purchase/create" ||
           pathname === "/dispatch/create" ||
           "/purchase/edit" ? (
