@@ -156,21 +156,31 @@ const EditItem = ({ ItemId }) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`transition-all duration-200 ${
-                  isHovered ? "bg-blue-50" : ""
-                }`}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-              >
-                <Edit
-                  className={`h-4 w-4 transition-all duration-200 ${
-                    isHovered ? "text-blue-500" : ""
-                  }`}
-                />
-              </Button>
+              <div>
+                <div className="sm:hidden">
+                  <button
+                    variant="default"
+                    className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="hidden sm:block">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`transition-all duration-200 ${isHovered ? "bg-blue-50" : ""
+                      }`}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                  >
+                    <Edit
+                      className={`h-4 w-4 transition-all duration-200 ${isHovered ? "text-blue-500" : ""
+                        }`}
+                    />
+                  </Button>
+                </div>
+              </div>
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent>
@@ -335,11 +345,10 @@ const EditItem = ({ ItemId }) => {
               <Button
                 onClick={handleSubmit}
                 disabled={isLoading || !hasChanges}
-                className={`mt-2 relative overflow-hidden ${
-                  hasChanges
+                className={`mt-2 relative overflow-hidden ${hasChanges
                     ? `${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}  `
                     : ""
-                }`}
+                  }`}
               >
                 {isLoading ? (
                   <>

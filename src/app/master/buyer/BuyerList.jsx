@@ -36,6 +36,7 @@ import CreateBuyer from "./CreateBuyer";
 import EditBuyer from "./EditBuyer ";
 import { BUYER_LIST } from "@/api";
 import Loader from "@/components/loader/Loader";
+import { Separator } from "@/components/ui/separator";
 
 const BuyerList = () => {
   const {
@@ -59,6 +60,7 @@ const BuyerList = () => {
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   // Define columns for the table
@@ -113,7 +115,9 @@ const BuyerList = () => {
       },
     },
   ];
-
+  const filteredItems = buyers?.filter((item) =>
+    item.buyer_name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
   // Create the table instance
   const table = useReactTable({
     data: buyers || [],
@@ -172,7 +176,81 @@ const BuyerList = () => {
 
   return (
     <Page>
-      <div className="w-full p-4 grid grid-cols-1">
+      <div className="w-full p-0 md:p-4 grid grid-cols-1">
+
+      <div className="sm:hidden">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-xl md:text-2xl text-gray-800 font-medium">
+              Buyer List
+            </h1>
+            <div>
+              <CreateBuyer />
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center py-4 gap-2">
+            {/* Search Input */}
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search item..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="pl-8 bg-gray-50 border-gray-200 focus:border-gray-300 focus:ring-gray-200 w-full"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {filteredItems.length > 0 ? (
+              filteredItems.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="relative bg-white rounded-lg shadow-sm border-l-4 border-r border-b border-t border-yellow-500 overflow-hidden"
+                >
+                  <div className="p-2 flex flex-col gap-2">
+                    {/* Sl No and Item Name */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="bg-gray-100 text-gray-600 rounded-full w-4 h-4 flex items-center justify-center text-xs font-medium">
+                          {index + 1}
+                        </div>
+                        <h3 className="font-medium flex flex-col text-sm text-gray-800">
+                          <span>{item.buyer_name}</span>
+                          <span className="text-xs">{item.buyer_city}</span>
+                        </h3>
+                        
+                      </div>
+                      <div className="flex items-center justify-between gap-2 ">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${item.buyer_status === "Active"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                            }`}
+                        >
+                          {item.buyer_status}
+                        </span>
+
+                        <EditBuyer buyerId={item.id} />
+                      </div>
+                    </div>
+                  
+
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 text-center text-gray-500">
+                No items found.
+              </div>
+            )}
+          </div>
+        </div>
+
+
+
+
+        <div className="hidden sm:block">
         <div className="flex text-left text-2xl text-gray-800 font-[400]">
           Buyer List
         </div>
@@ -297,6 +375,7 @@ const BuyerList = () => {
               Next
             </Button>
           </div>
+        </div>
         </div>
       </div>
     </Page>
