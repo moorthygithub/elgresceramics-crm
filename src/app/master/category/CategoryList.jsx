@@ -279,12 +279,12 @@ const CategoryList = () => {
             {filteredCategories.length > 0 ? (
               filteredCategories.map((item, index) => (
                 <div key={item.id} className="relative bg-white rounded-lg shadow-sm border-l-4 border-r border-b border-t  border-yellow-500 overflow-hidden">
-                  <div className="p-3 flex justify-between items-center border-b border-gray-50">
+                  <div className="p-2 flex justify-between items-center border-b border-gray-50">
                     <div className=" flex items-center space-x-2">
-                      <div className="bg-gray-100 text-gray-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
+                      <div className="bg-gray-100 text-gray-600 rounded-full w-4 h-4 flex items-center justify-center text-xs font-medium">
                         {index + 1}
                       </div>
-                      <h3 className="font-medium text-gray-800">
+                      <h3 className="font-medium text-sm text-gray-800">
 
                         {item.category}
 

@@ -36,6 +36,7 @@ import CreateItem from "./CreateItem";
 import EditItem from "./EditItem";
 import { ITEM_LIST } from "@/api";
 import Loader from "@/components/loader/Loader";
+import { Separator } from "@/components/ui/separator";
 
 const ItemList = () => {
   const {
@@ -241,14 +242,14 @@ const ItemList = () => {
                     {/* Sl No and Item Name */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <div className="bg-gray-100 text-gray-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
+                        <div className="bg-gray-100 text-gray-600 rounded-full w-4 h-4 flex items-center justify-center text-xs font-medium">
                           {index + 1}
                         </div>
-                        <h3 className="font-medium text-gray-800">
+                        <h3 className="font-medium text-sm text-gray-800">
                           {item.item_name}
                         </h3>
                       </div>
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center justify-between gap-2 ">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${item.item_status === "Active"
                             ? "bg-green-100 text-green-800"
@@ -261,19 +262,21 @@ const ItemList = () => {
                         <EditItem ItemId={item.id} />
                       </div>
                     </div>
+                    <Separator/>
+                 
                     <div className="flex flex-row items-center justify-between">
                       {/* Category */}
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">Category:</span>
-                        <span className="text-sm font-medium text-gray-800">
+                        <span className="text-xs text-gray-600">Category:</span>
+                        <span className="text-xs font-medium text-gray-800">
                           {item.item_category}
                         </span>
                       </div>
 
                       {/* Size */}
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">Size:</span>
-                        <span className="text-sm font-medium text-gray-800">
+                        <span className="text-xs text-gray-600">Size:</span>
+                        <span className="text-xs font-medium text-gray-800">
                           {item.item_size}
                         </span>
                       </div>
@@ -281,16 +284,16 @@ const ItemList = () => {
                     <div className="flex flex-row items-center justify-between">
                       {/* Brand */}
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">Brand:</span>
-                        <span className="text-sm font-medium text-gray-800">
+                        <span className="text-xs text-gray-600">Brand:</span>
+                        <span className="text-xs font-medium text-gray-800">
                           {item.item_brand}
                         </span>
                       </div>
 
                       {/* Weight */}
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">Weight:</span>
-                        <span className="text-sm font-medium text-gray-800">
+                        <span className="text-xs text-gray-600">Weight:</span>
+                        <span className="text-xs font-medium text-gray-800">
                           {item.item_weight}
                         </span>
                       </div>
