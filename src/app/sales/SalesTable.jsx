@@ -27,7 +27,7 @@ const SalesTable = ({
   handleDeleteRow,
 }) => {
   return (
-    <div className="mt-4">
+    <div className="mt-4 overflow-x-auto">
       <Table className="border border-gray-300 rounded-lg shadow-sm">
         <TableHeader>
           <TableRow className="bg-gray-100">

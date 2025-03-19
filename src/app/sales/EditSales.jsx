@@ -1,22 +1,6 @@
+import { fetchSalesById, updateSalesEdit } from "@/api";
 import Page from "@/app/dashboard/page";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import BASE_URL from "@/config/BaseUrl";
-import { ButtonConfig } from "@/config/ButtonConfig";
-import { useToast } from "@/hooks/use-toast";
-import {
-  useFetchBuyers,
-  useFetchCategory,
-  useFetchItems,
-} from "@/hooks/useApi";
+import { MemoizedSelect } from "@/components/common/MemoizedSelect";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,17 +11,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import BASE_URL from "@/config/BaseUrl";
+import { ButtonConfig } from "@/config/ButtonConfig";
+import { useToast } from "@/hooks/use-toast";
+import {
+  useFetchBuyers,
+  useFetchCategory,
+  useFetchItems,
+} from "@/hooks/useApi";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { PlusCircle, SquarePlus } from "lucide-react";
+import { SquarePlus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
-import SalesTable from "./SalesTable";
-import { MemoizedSelect } from "@/components/common/MemoizedSelect";
-import { Textarea } from "@/components/ui/textarea";
 import CreateBuyer from "../master/buyer/CreateBuyer";
-import { decryptId } from "@/components/common/Encryption";
-import { fetchSalesById, updateSalesEdit } from "@/api";
+import SalesTable from "./SalesTable";
 // Validation Schema
 
 const BranchHeader = () => {
@@ -52,12 +51,10 @@ const BranchHeader = () => {
   );
 };
 
-
 const EditSales = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { id } = useParams();
-
 
   const [itemData, setItemData] = useState([]);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -83,7 +80,7 @@ const EditSales = () => {
     },
   ]);
   const createBranchMutation = useMutation({
-    mutationFn: (updateData) => updateSalesEdit( id, updateData),
+    mutationFn: (updateData) => updateSalesEdit(id, updateData),
     onSuccess: (response) => {
       if (response.code == 200) {
         toast({
@@ -104,26 +101,6 @@ const EditSales = () => {
           variant: "destructive",
         });
       }
-      // setFormData({
-      //   sales_date: "",
-      //   sales_buyer_name: "",
-      //   sales_buyer_city: "",
-      //   sales_ref_no: "",
-      //   sales_vehicle_no: "",
-      //   sales_remark: "",
-      //   sales_status: "",
-      // });
-
-      // setInvoiceData([
-      //   {
-      //     sales_sub_category: "",
-      //     sales_sub_item: "",
-      //     sales_sub_size: "",
-      //     sales_sub_brand: "",
-      //     sales_sub_weight: "",
-      //     sales_sub_box: "",
-      //   },
-      // ]);
     },
     onError: (error) => {
       console.error("API Error:", error);
@@ -146,7 +123,7 @@ const EditSales = () => {
     refetch,
   } = useQuery({
     queryKey: ["salesByid", id],
-     queryFn: () => fetchSalesById(id)
+    queryFn: () => fetchSalesById(id),
   });
 
   useEffect(() => {
@@ -341,7 +318,7 @@ const EditSales = () => {
         ...formData,
         sales_product_data: invoiceData,
       };
-      createBranchMutation.mutate(updateData );
+      createBranchMutation.mutate(updateData);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const groupedErrors = error.errors.reduce((acc, err) => {
@@ -389,22 +366,20 @@ const EditSales = () => {
         <BranchHeader />
         <Card className={`mb-6 ${ButtonConfig.cardColor}`}>
           <CardContent className="p-6">
-            <div className="grid  grid-cols-1 md:grid-cols-4 gap-2">
+            <div className="grid-cols-1 md:grid md:grid-cols-4 gap-2">
               <div>
-                <div>
-                  <label
-                    className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                  >
-                    Date<span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    className="bg-white"
-                    value={formData.sales_date}
-                    onChange={(e) => handleInputChange(e, "sales_date")}
-                    placeholder="Enter Sales Date"
-                    type="date"
-                  />
-                </div>
+                <label
+                  className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                >
+                  Date<span className="text-red-500">*</span>
+                </label>
+                <Input
+                  className="bg-white"
+                  value={formData.sales_date}
+                  onChange={(e) => handleInputChange(e, "sales_date")}
+                  placeholder="Enter Sales Date"
+                  type="date"
+                />
               </div>
               <div>
                 <label
@@ -539,15 +514,19 @@ const EditSales = () => {
             className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
             disabled={invoiceData.length < 1 || createBranchMutation.isPending}
           >
-            {createBranchMutation.isPending ? "Submitting..." : "Update Dispatch"}
+            {createBranchMutation.isPending
+              ? "Submitting..."
+              : "Update Dispatch"}
           </Button>
-           <Button
-                      type="button" 
-                      onClick={()=>{navigate('/dispatch')}} 
-                      className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
-                    >
-                    Go Back
-                    </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              navigate("/dispatch");
+            }}
+            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
+          >
+            Go Back
+          </Button>
         </div>
       </form>
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
