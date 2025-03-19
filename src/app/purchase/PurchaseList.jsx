@@ -243,7 +243,7 @@ const PurchaseList = () => {
             <div className="relative w-full md:w-72">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
               <Input
-                placeholder="Search item..."
+                placeholder="Search purchase..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 className="pl-8 bg-gray-50 border-gray-200 focus:border-gray-300 focus:ring-gray-200 w-full"
@@ -278,15 +278,15 @@ const PurchaseList = () => {
                         >
                           {item.purchase_status}
                         </span>
-                        <Button
+                        <button
                           variant="ghost"
-                          size="icon"
+                          className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
                           onClick={() => {
                             navigateToPurchaseEdit(navigate, item.id)
                           }}
                         >
-                          <Edit />
-                        </Button>
+                        <Edit className="w-4 h-4" />
+                        </button>
                         {/* <EditItem ItemId={} /> */}
                       </div>
                     </div>
