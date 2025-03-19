@@ -28,7 +28,7 @@ function App() {
   };
   return (
     <>
-      <DisabledRightClick />
+      {/* <DisabledRightClick /> */}
       <Toaster />
       <SessionTimeoutTracker expiryTime={time} onLogout={handleLogout} />
       <Routes>

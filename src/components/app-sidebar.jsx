@@ -40,7 +40,7 @@ export function AppSidebar({ ...props }) {
     },
     teams: [
       {
-        name: `${nameL}`,
+        name: `Elgres Cermaic`,
         logo: GalleryVerticalEnd,
         plan: "",
       },

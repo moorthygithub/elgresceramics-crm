@@ -86,12 +86,24 @@ const CreateCategory = () => {
       {" "}
       <PopoverTrigger asChild>
         {pathname === "/master/category" ? (
+          <div>
+          <div className="sm:hidden">
           <Button
             variant="default"
-            className={`md:ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
+            className={`md:ml-2 bg-yellow-400 hover:bg-yellow-600 text-black rounded-l-full`}
+          >
+            <SquarePlus className="h-4 w-4" /> Category
+          </Button>
+          </div>
+          <div className="hidden sm:block">
+          <Button
+            variant="default"
+            className={`md:ml-2 w-full ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
           >
             <SquarePlus className="h-4 w-4 mr-2" /> Category
           </Button>
+          </div>
+          </div>
         ) : pathname === "/purchase/create" ||
           pathname === "/dispatch/create" ? (
           <p className="text-xs text-red-600  w-32 hover:text-red-300 cursor-pointer">
