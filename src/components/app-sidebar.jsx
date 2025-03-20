@@ -9,6 +9,7 @@ import {
   GalleryVerticalEnd,
   Map,
   NotebookText,
+  Package,
   ReceiptText,
   Settings,
   Settings2,
@@ -92,6 +93,12 @@ export function AppSidebar({ ...props }) {
         title: "Dispatch",
         url: "/dispatch",
         icon: ShoppingBag,
+        isActive: false,
+      },
+      {
+        title: "Stock View",
+        url: "/stock-view",
+        icon: Package,
         isActive: false,
       },
       {

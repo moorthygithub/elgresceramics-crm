@@ -136,7 +136,46 @@ const BuyerReport = () => {
 
   return (
     <Page>
-      <div className="p-4">
+      <div className="p-0 md:p-4">
+
+      <div className="sm:hidden">
+  <div
+    className={`sticky top-0 z-10 border border-gray-200 rounded-lg ${ButtonConfig.cardheaderColor} shadow-sm p-3 mb-2`}
+  >
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+      {/* Title Section */}
+      <div className="flex-1 text-center sm:text-left">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+          Buyer Summary
+        </h1>
+      </div>
+
+      {/* Button Section */}
+      <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
+        {/* Print Button */}
+        <button
+          className={`w-full sm:w-auto ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} text-sm p-2 rounded-lg flex items-center justify-center`}
+          onClick={handlePrintPdf}
+        >
+          <Printer className="h-3 w-3 mr-1" /> Print
+        </button>
+
+        {/* Download Button */}
+        <button
+          className={`w-full sm:w-auto ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} text-sm p-2 rounded-lg flex items-center justify-center`}
+          onClick={onSubmit}
+        >
+          <Download className="h-3 w-3 mr-1" /> Download
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+        <div className="hidden sm:block">
         <div
           className={`sticky top-0 z-10 border border-gray-200 rounded-lg ${ButtonConfig.cardheaderColor} shadow-sm p-4 mb-2`}
         >
@@ -163,7 +202,7 @@ const BuyerReport = () => {
             </div>
           </div>
         </div>
-
+        </div>
         <div
           className="overflow-x-auto text-[11px] grid grid-cols-1"
           ref={containerRef}

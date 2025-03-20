@@ -25,7 +25,7 @@ import { ArrowLeft, ChevronsUpDown, Key, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ChangePassword from "../auth/ChangePassword";
 import { useState } from "react";
-import logo from "../../assets/logo.png"
+import logo from "../../assets/el.png"
 
 
 // eslint-disable-next-line react/prop-types
@@ -100,17 +100,7 @@ export default function Page({ children }) {
 
         <div className="sm:hidden sticky top-0 flex justify-between items-center px-4 py-2  border-b z-40 bg-white  rounded-b-lg shadow-sm">
           <div className="font-semibold flex items-center space-x-2">
-            <div className="flex items-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-yellow-800">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-yellow-900 leading-tight">Elgres Ceramic</span>
-
-            </div>
+            <img src={logo} alt="logo"  className="h-8 w-full" />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

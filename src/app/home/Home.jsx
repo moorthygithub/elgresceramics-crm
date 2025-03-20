@@ -1,5 +1,5 @@
 import Page from "@/app/dashboard/page";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
@@ -21,13 +21,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ExcelJS from 'exceljs';
 import { useNavigate } from "react-router-dom";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
-import { DASHBOARD_LIST } from "@/api";
+import { DASHBOARD_LIST, STOCK_REPORT } from "@/api";
 import Loader from "@/components/loader/Loader";
+import { getTodayDate } from "@/utils/currentDate";
+import { Download, Printer, Search } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import { Input } from "@/components/ui/input";
 
 const Home = () => {
+
+  const containerRef = useRef();
+  const currentDate = getTodayDate()
+  
+
   const {
     data: dashboard,
     isLoading,
@@ -44,11 +54,45 @@ const Home = () => {
     },
   });
 
+
+
+  /*--------------------------------stock view-------------- */
+  const fetchStockData = async () => {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `${STOCK_REPORT}`,
+
+      {
+        from_date: "2024-01-01",
+        to_date: currentDate,
+      }
+
+      ,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data.stock;
+  };
+
+  const {
+    data: stockData,
+    isLoadingStock,
+    isErrorStock,
+    refetchStock,
+  } = useQuery({
+    queryKey: ["stockData"],
+    queryFn: fetchStockData,
+  });
+  /*--------------------------------stock view-------------- */
   // State for table management
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   // Define columns for the table
@@ -200,6 +244,91 @@ const Home = () => {
       },
     },
   });
+
+  const filteredItems = stockData?.filter((item) => {
+    const searchLower = searchQuery.toLowerCase();
+
+    return (
+      item.item_name.toLowerCase().includes(searchLower) ||
+      item.item_category.toLowerCase().includes(searchLower) ||
+      item.item_size.toLowerCase().includes(searchLower) ||
+      (
+        (item.openpurch - item.closesale + (item.purch - item.sale))
+          .toString()
+          .toLowerCase()
+          .includes(searchLower)
+      )
+    );
+  }) || [];
+
+  const handlePrintPdf = useReactToPrint({
+    content: () => containerRef.current,
+    documentTitle: "Stock",
+    pageStyle: `
+        @page {
+      size: A4 portrait;
+           margin: 5mm;
+        }
+        @media print {
+          body {
+            font-size: 10px; 
+            margin: 0mm;
+            padding: 0mm;
+          }
+          table {
+            font-size: 11px;
+          }
+          .print-hide {
+            display: none;
+          }
+        }
+      `,
+  });
+
+
+
+
+  const downloadCSV = async (stockData) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Stock Summary');
+
+    // Add headers
+    const headers = ["Item Name", "Category", "Size", "Available"];
+    const headerRow = worksheet.addRow(headers);
+    headerRow.eachCell(cell => {
+      cell.font = {
+        bold: true,
+        color: { argb: '000000' }
+      };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFF00' } // Yellow background
+      };
+      cell.alignment = { horizontal: 'center' };
+    });
+
+    // Add data rows
+    stockData.forEach((item) => {
+      const row = [
+        item.item_name,
+        item.item_category,
+        item.item_size,
+        (item.openpurch - item.closesale + (item.purch - item.sale)).toLocaleString()
+      ];
+      worksheet.addRow(row);
+    });
+
+    // Generate and download Excel file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `stock_summary_${getTodayDate()}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
   // Render loading state
   if (isLoading) {
     return (
@@ -230,17 +359,191 @@ const Home = () => {
       </Page>
     );
   }
+  if (isLoadingStock) {
+    return (
+      <Page>
+        <div className="flex justify-center items-center h-full">
+          <Loader />
+        </div>
+      </Page>
+    );
+  }
+
+  // Render error state
+  if (isErrorStock) {
+    return (
+      <Page>
+        <Card className="w-full max-w-md mx-auto mt-10">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              Error Fetching Home
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => refetchStock()} variant="outline">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </Page>
+    );
+  }
 
   return (
     <Page>
       <div className=" w-full p-0  md:p-4 sm:grid grid-cols-1">
         {/* tabs for mobile screen for purchase and summary  */}
         <>
-          <Tabs defaultValue="purchase" className="sm:hidden">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue="stock-view" className="sm:hidden">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="stock-view">Stock View</TabsTrigger>
               <TabsTrigger value="purchase">Purchase</TabsTrigger>
               <TabsTrigger value="dispatch">Dispatch</TabsTrigger>
             </TabsList>
+
+            {/* Stock Tab Content */}
+            <TabsContent value="stock-view">
+              <Card className="shadow-sm  border-0">
+                <CardHeader className="px-3 py-2 border-b">
+                  <div className="flex flex-col space-y-2">
+                    {/* Title and Buttons */}
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg font-semibold text-black">
+                        Stock View
+                      </CardTitle>
+                      <div className="flex space-x-2">
+                        <button
+                          className={`flex items-center justify-center sm:w-auto ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} text-sm p-2 rounded-lg`}
+                          onClick={handlePrintPdf}
+                        >
+                          <Printer className="h-4 w-4 mr-1" /> Print
+                        </button>
+                        <button
+                          className={`flex items-center justify-center sm:w-auto ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} text-sm p-2 rounded-lg`}
+                          onClick={() => downloadCSV(stockData)}
+                        >
+                          <Download className="h-4 w-4 mr-1" /> Excel
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Search Bar and Filtered Items Count */}
+                    <div className="flex items-center justify-between space-x-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                        <Input
+                          placeholder="Search stock..."
+                          value={searchQuery}
+                          onChange={(event) => setSearchQuery(event.target.value)}
+                          className="pl-8 bg-gray-50 border-gray-200 focus:border-gray-300 focus:ring-gray-200 w-full text-sm"
+                        />
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {filteredItems.length} items
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-2">
+                  {stockData?.length ? (
+
+                    <div
+                      className="overflow-x-auto text-[11px] grid grid-cols-1"
+                      ref={containerRef}
+                    >
+                      <div className="hidden print:block">
+                        <div className="flex justify-between ">
+                          <h1 className="text-left text-2xl font-semibold mb-3 ">
+                            Stock Summary
+                          </h1>
+                          <div className="flex space-x-6">
+                            <h1>
+                              {" "}
+                              From - 2024-01-01
+                            </h1>
+                            <h1>To -{currentDate}</h1>
+                          </div>
+                        </div>
+                      </div>
+
+                      <table className="w-full border-collapse border border-black">
+                        <thead className="bg-gray-100 sticky top-0 z-10">
+                          <tr>
+                            <th className="border border-black px-2 py-2 text-center">
+                              Item Name
+                            </th>
+                            <th className="border border-black px-2 py-2 text-center">
+                              Category
+                            </th>
+                            <th className=" hidden print:block border border-black px-2 py-2 text-center">
+                              Size
+                            </th>
+
+
+                            <th className="border border-black px-2 py-2 text-center">
+                              Available
+                            </th>
+                          </tr>
+                        </thead>
+                        {filteredItems && (
+                          <tbody>
+                            {filteredItems.map((item, index) => (
+                              <>
+                                <tr
+                                  key={item.id || item.item_name}
+                                  className="hover:bg-gray-50"
+                                >
+                                  <td className="border border-black px-2 py-2 ">
+                                    {item.item_name}
+                                  </td>
+                                  <td className="border border-black px-2 py-2 text-right">
+                                    {item.item_category}
+                                  </td>
+                                  <td className="hidden print:block border border-black px-2 py-2 text-right">
+                                    {item.item_size}
+                                  </td>
+
+
+                                  <td className="border border-black px-2 py-2 text-right">
+                                    {(
+                                      item.openpurch -
+                                      item.closesale +
+                                      (item.purch - item.sale)
+                                    ).toLocaleString()}
+                                  </td>
+                                </tr>
+                              </>
+                            ))}
+                          </tbody>
+                        )}
+                      </table>
+                    </div>
+
+                  ) : (
+                    <div className="text-center text-gray-500 py-4 flex flex-col items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-gray-400 mb-2"
+                      >
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                        <polyline points="13 2 13 9 20 9" />
+                      </svg>
+                      No stock data available.
+                    </div>
+                  )}
+                </CardContent>
+
+              </Card>
+            </TabsContent>
+
 
             {/* Purchase Tab Content */}
             <TabsContent value="purchase">
@@ -386,7 +689,7 @@ const Home = () => {
                     </div>
                   )}
                 </CardContent>
-              
+
               </Card>
             </TabsContent>
 
@@ -540,135 +843,135 @@ const Home = () => {
 
         </>
 
-<>
-        {/* median screen  */}
-        <div className=" hidden sm:block rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow
-                className={`${ButtonConfig.tableHeader} ${ButtonConfig.tableLabel}`}
-              >
-                <TableHead
-                  colSpan={table.getHeaderGroups()[0]?.headers.length}
-                  className="text-xl font-bold text-black"
+        <>
+          {/* median screen  */}
+          <div className=" hidden sm:block rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow
+                  className={`${ButtonConfig.tableHeader} ${ButtonConfig.tableLabel}`}
                 >
-                  Purchase Summary
-                </TableHead>
-              </TableRow>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead
-                        key={header.id}
-                        className={` ${ButtonConfig.tableHeader} ${ButtonConfig.tableLabel}`}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
+                  <TableHead
+                    colSpan={table.getHeaderGroups()[0]?.headers.length}
+                    className="text-xl font-bold text-black"
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+                    Purchase Summary
+                  </TableHead>
+                </TableRow>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead
+                          key={header.id}
+                          className={` ${ButtonConfig.tableHeader} ${ButtonConfig.tableLabel}`}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        {/* ------------------------------sales table------------------------ */}
-        <div className=" hidden sm:block rounded-md border my-4">
-          <Table>
-            <TableHeader>
-              <TableRow
-                className={`${ButtonConfig.tableHeader} ${ButtonConfig.tableLabel}`}
-              >
-                <TableHead
-                  colSpan={salestable.getHeaderGroups()[0]?.headers.length}
-                  className="text-xl font-bold text-black"
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {/* ------------------------------sales table------------------------ */}
+          <div className=" hidden sm:block rounded-md border my-4">
+            <Table>
+              <TableHeader>
+                <TableRow
+                  className={`${ButtonConfig.tableHeader} ${ButtonConfig.tableLabel}`}
                 >
-                  Dispatch Summary
-                </TableHead>
-              </TableRow>
-              {salestable.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead
-                        key={header.id}
-                        className={` ${ButtonConfig.tableHeader} ${ButtonConfig.tableLabel}`}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {salestable.getRowModel().rows?.length ? (
-                salestable.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
+                  <TableHead
+                    colSpan={salestable.getHeaderGroups()[0]?.headers.length}
+                    className="text-xl font-bold text-black"
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+                    Dispatch Summary
+                  </TableHead>
+                </TableRow>
+                {salestable.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead
+                          key={header.id}
+                          className={` ${ButtonConfig.tableHeader} ${ButtonConfig.tableLabel}`}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {salestable.getRowModel().rows?.length ? (
+                  salestable.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </>
       </div>
     </Page>
