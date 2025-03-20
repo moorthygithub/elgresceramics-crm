@@ -70,15 +70,15 @@ const Stock = () => {
     `,
   });
 
-    if (isLoading) {
-      return (
-        <Page>
-          <div className="flex justify-center items-center h-full">
-           <Loader/>
-          </div>
-        </Page>
-      );
-    }
+  if (isLoading) {
+    return (
+      <Page>
+        <div className="flex justify-center items-center h-full">
+          <Loader />
+        </div>
+      </Page>
+    );
+  }
 
   if (isError) {
     return (
@@ -171,8 +171,65 @@ const Stock = () => {
 
   return (
     <Page>
-      <div className="p-4">
-        <BranchHeader />
+      <div className="p-0 md:p-4">
+
+
+        <div className="sm:hidden">
+          <div className={`sm:sticky relative top-0 z-10 border border-gray-200 rounded-lg ${ButtonConfig.cardheaderColor} shadow-sm p-3 mb-2`}>
+            <div className="flex flex-col md:flex-row md:items-center gap-2 sm:gap-4">
+              {/* Title Section */}
+              <div className="flex-1 text-center md:text-left">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-800">
+                  Stock Summary
+                </h1>
+              </div>
+
+              {/* Date Inputs */}
+              <div className="flex  flex-row items-center gap-2 w-full md:w-auto">
+                <div className="w-full sm:w-auto">
+                  <label className={`block ${ButtonConfig.cardLabel} text-xs mb-1 font-medium`}>
+                    From Date <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="date"
+                    value={formData.from_date}
+                    className="bg-white w-full sm:w-auto text-sm p-1"
+                    onChange={(e) => handleInputChange("from_date", e)}
+                    placeholder="From Date"
+                  />
+                </div>
+
+                <div className="w-full sm:w-auto">
+                  <label className={`block ${ButtonConfig.cardLabel} text-xs mb-1 font-medium`}>
+                    To Date <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="date"
+                    className="bg-white w-full sm:w-auto text-sm p-1"
+                    value={formData.to_date}
+                    onChange={(e) => handleInputChange("to_date", e)}
+                    placeholder="To Date"
+                  />
+                </div>
+              </div>
+
+              {/* Print Button */}
+              <div className="absolute top-0 right-0 ">
+                <button
+                  className={` sm:w-auto ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} text-sm p-3 rounded-bl-2xl `}
+                  onClick={handlePrintPdf}
+                >
+                  <Printer className="h-3 w-3 " /> 
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="hidden sm:block">
+          <BranchHeader />
+
+        </div>
+
 
         <div
           className="overflow-x-auto text-[11px] grid grid-cols-1"
@@ -194,7 +251,7 @@ const Stock = () => {
           </div>
 
           <table className="w-full border-collapse border border-black">
-            <thead className="bg-gray-100">
+            <thead className="bg-gray-100 sticky top-0 z-10">
               <tr>
                 <th className="border border-black px-2 py-2 text-center">
                   Item Name
@@ -206,7 +263,7 @@ const Stock = () => {
                   Purchase
                 </th>
                 <th className="border border-black px-2 py-2 text-center">
-                Dispatch
+                  Dispatch
                 </th>
 
                 <th className="border border-black px-2 py-2 text-center">
@@ -249,6 +306,7 @@ const Stock = () => {
             )}
           </table>
         </div>
+
       </div>
     </Page>
   );

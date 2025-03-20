@@ -18,6 +18,7 @@ import SessionTimeoutTracker from "./components/SessionTimeoutTracker/SessionTim
 import DisabledRightClick from "./components/common/DisabledRightClick";
 import SalesView from "./app/sales/SalesView";
 import Maintenance from "./components/common/Maintenance";
+import StockView from "./app/stockView/StockView";
 
 function App() {
   const navigate = useNavigate();
@@ -45,6 +46,8 @@ function App() {
         <Route path="/master/item" element={<ItemList />} />
         {/* ----------------->Category*/}
         <Route path="/master/category" element={<CategoryList />} />
+        {/* ----------------->stock-view*/}
+        <Route path="/stock-view" element={<StockView />} />
         {/* ----------------->Purchase*/}
         <Route path="/purchase" element={<PurchaseList />} />
         <Route path="/purchase/create" element={<CreatePurchase />} />

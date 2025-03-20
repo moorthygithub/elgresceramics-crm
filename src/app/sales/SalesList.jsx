@@ -232,6 +232,7 @@ const SalesList = () => {
   return (
     <Page>
       <div className="w-full p-0 md:p-4 grid grid-cols-1">
+
         <div className="sm:hidden">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl md:text-2xl text-gray-800 font-medium">
@@ -266,6 +267,9 @@ const SalesList = () => {
               filteredItems.map((item, index) => (
                 <div
                   key={item.id}
+                  onClick={() => {
+                    navigateTOSalesView(navigate, item.id);
+                  }}
                   className="relative bg-white rounded-lg shadow-sm border-l-4 border-r border-b border-t border-yellow-500 overflow-hidden"
                 >
                   <div className="p-2 flex flex-col gap-2">
@@ -291,7 +295,8 @@ const SalesList = () => {
                         </span>
                         <button
                           className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
-                          onClick={() => {
+                          onClick={(event) => {
+                            event.stopPropagation();
                             navigateTOSalesEdit(navigate, item.id);
                           }}
                         >
@@ -391,6 +396,9 @@ const SalesList = () => {
             )}
           </div>
         </div>
+
+
+
         <div className="hidden sm:block">
           <div className="flex text-left text-2xl text-gray-800 font-[400]">
             Dispatch List
