@@ -6,7 +6,7 @@ import AppProvider from "./lib/ContextPanel.jsx";
 import App from "./App.jsx";
 import "./index.css";
 
-const queryClient = new QueryClient(); // ✅ Create QueryClient here
+const queryClient = new QueryClient(); 
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -15,8 +15,7 @@ createRoot(document.getElementById("root")).render(
       // basename="/admin"
     >
       <QueryClientProvider client={queryClient}>
-        {" "}
-        {/* ✅ Wrap App with QueryClientProvider */}
+ 
         <AppProvider>
           <App />
         </AppProvider>
