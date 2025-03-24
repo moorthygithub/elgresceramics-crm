@@ -78,8 +78,9 @@ export default function LoginAuth() {
         localStorage.setItem("email", UserInfo.user.email);
         localStorage.setItem("token-expire-time", UserInfo.token_expires_at);
 
-        console.log("✅ Login successful! Redirecting to /home...");
-        navigate("/home");
+        const redirectPath = window.innerWidth < 768 ? "/home" : "/stock-view";
+        console.log(`✅ Login successful! Redirecting to ${redirectPath}...`);
+        navigate(redirectPath);
       } else {
         console.warn("⚠️ Unexpected API response:", res);
         toast.error("Login Failed: Unexpected response.");

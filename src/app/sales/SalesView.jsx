@@ -70,9 +70,10 @@ const SalesView = () => {
     0
   );
   const totalSaleWeight = salessubData.reduce(
-    (total, row) => total + row.sales_sub_weight,
+    (total, row) => total + row.sales_sub_weight * row.sales_sub_box,
     0
   );
+  
 
   const handleSaveAsPdf = () => {
     if (!containerRef.current) {

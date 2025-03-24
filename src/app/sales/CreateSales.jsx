@@ -575,7 +575,7 @@ const CreateSales = () => {
           </form>
         </div>
      
-     <div className=" hidden md:block">
+     <div className=" hidden sm:block">
       <form onSubmit={handleSubmit} className="w-full  grid grid-cols-1">
         <BranchHeader />
         <Card className={`mb-6 ${ButtonConfig.cardColor}`}>
