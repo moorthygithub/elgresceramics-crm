@@ -154,7 +154,7 @@ const CreateItem = () => {
         ) : pathname === "/purchase/create" ||
           pathname === "/dispatch/create" ||
           "/purchase/edit" ? (
-          <p className="text-xs text-red-600  w-32 hover:text-red-300 cursor-pointer">
+          <p className="text-xs text-red-600   hover:text-red-300 cursor-pointer">
             Item <span className="text-red-500">*</span>
           </p>
         ) : (
