@@ -40,6 +40,7 @@ import { navigateTOSalesEdit, navigateTOSalesView, SALES_LIST } from "@/api";
 import Loader from "@/components/loader/Loader";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
+import StatusToggle from "@/components/toggle/StatusToggle";
 // import CreateItem from "./CreateItem";
 // import EditItem from "./EditItem";
 
@@ -105,17 +106,15 @@ const SalesList = () => {
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("sales_status");
-
+        const statusId = row.original.id;
         return (
-          <span
-            className={`px-2 py-1 rounded text-xs ${
-              status == "Active"
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {status}
-          </span>
+          <StatusToggle
+          initialStatus={status}
+          teamId={statusId}
+          onStatusChange={() => {
+            refetch();
+          }}
+        />
         );
       },
     },
@@ -290,8 +289,16 @@ const SalesList = () => {
                               ? "bg-green-100 text-green-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          {item.sales_status}
+                  
+                            <StatusToggle
+                                    initialStatus={item.sales_status}
+                                    teamId={item.id}
+                                    onStatusChange={() => {
+                                      refetch();
+                                    }}
+                                  />
                         </span>
                         <button
                           className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}

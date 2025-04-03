@@ -27,6 +27,7 @@ export const BUYER_CREATE = `${BASE_URL}/api/buyers`;
 export const BUYER_REPORT = `${BASE_URL}/api/report-buyer-data`;
 export const BUYER_DOWNLOAD = `${BASE_URL}/api/download-buyer-data`;
 export const STOCK_REPORT = `${BASE_URL}/api/stock`;
+export const SINGLE_ITEM_STOCK_REPORT = `${BASE_URL}/api/item-stock`;
 
 
 // ROUTE CONFIGURATION 

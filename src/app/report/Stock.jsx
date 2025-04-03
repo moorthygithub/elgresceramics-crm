@@ -225,6 +225,7 @@ const Stock = () => {
             </div>
           </div>
         </div>
+        
         <div className="hidden sm:block">
           <BranchHeader />
 

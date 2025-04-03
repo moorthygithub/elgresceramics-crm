@@ -25,6 +25,7 @@ const SalesTable = ({
   itemsData,
   removeRow,
   handleDeleteRow,
+  userType,
 }) => {
   return (
     <div className="mt-4 overflow-x-auto">
@@ -146,6 +147,7 @@ const SalesTable = ({
                 <TableCell className="p-2 border">
                   <TableCell className="p-2 ">
                     {row.id ? (
+                      userType == 2 && (
                       <Button
                         variant="ghost"
                         onClick={() => handleDeleteRow(row.id)}
@@ -154,6 +156,7 @@ const SalesTable = ({
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
+                      )
                     ) : (
                       <Button
                         variant="ghost"
