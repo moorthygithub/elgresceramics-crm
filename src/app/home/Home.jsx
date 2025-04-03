@@ -1,5 +1,5 @@
 import Page from "@/app/dashboard/page";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
@@ -28,15 +28,21 @@ import moment from "moment";
 import { DASHBOARD_LIST, STOCK_REPORT } from "@/api";
 import Loader from "@/components/loader/Loader";
 import { getTodayDate } from "@/utils/currentDate";
-import { Download, Printer, Search } from "lucide-react";
+import { Download, Printer, Search,ChevronDown } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { Input } from "@/components/ui/input";
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 const Home = () => {
 
   const containerRef = useRef();
   const currentDate = getTodayDate()
-  
+    const [selectedCategory, setSelectedCategory] = useState("All Categories");
+    const [categories, setCategories] = useState(["All Categories"]);
 
   const {
     data: dashboard,
@@ -245,21 +251,34 @@ const Home = () => {
     },
   });
 
-  const filteredItems = stockData?.filter((item) => {
-    const searchLower = searchQuery.toLowerCase();
-
-    return (
-      item.item_name.toLowerCase().includes(searchLower) ||
-      item.item_category.toLowerCase().includes(searchLower) ||
-      item.item_size.toLowerCase().includes(searchLower) ||
-      (
-        (item.openpurch - item.closesale + (item.purch - item.sale))
-          .toString()
-          .toLowerCase()
-          .includes(searchLower)
-      )
-    );
-  }) || [];
+    useEffect(() => {
+      if (stockData && stockData.length > 0) {
+        const uniqueCategories = [
+          ...new Set(stockData.map((item) => item.item_category)),
+        ];
+        setCategories(["All Categories", ...uniqueCategories]);
+      }
+    }, [stockData]);
+  
+    const filteredItems =
+      stockData?.filter((item) => {
+        const searchLower = searchQuery.toLowerCase();
+        const matchesSearch =
+          item.item_name.toLowerCase().includes(searchLower) ||
+          item.item_category.toLowerCase().includes(searchLower) ||
+          item.item_size.toLowerCase().includes(searchLower) ||
+          (item.openpurch - item.closesale + (item.purch - item.sale))
+            .toString()
+            .toLowerCase()
+            .includes(searchLower);
+  
+        // Filter by selected category
+        const matchesCategory =
+          selectedCategory === "All Categories" ||
+          item.item_category === selectedCategory;
+  
+        return matchesSearch && matchesCategory;
+      }) || [];
 
   const handlePrintPdf = useReactToPrint({
     content: () => containerRef.current,
@@ -409,20 +428,61 @@ const Home = () => {
                     {/* Title and Buttons */}
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg font-semibold text-black">
-                        Stock View
+                        Stock 
                       </CardTitle>
                       <div className="flex space-x-2">
+                      <DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button variant="outline" className=" w-32 truncate">
+      <span className="truncate">{selectedCategory}</span>
+      <ChevronDown className="ml-2 h-4 w-4 flex-shrink-0" />
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent 
+    className="max-h-60 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
+    align="start"
+    sideOffset={5}
+    collisionPadding={10}
+  >
+    {categories.map((category) => (
+      <DropdownMenuItem
+        key={category}
+        onSelect={() => setSelectedCategory(category)}
+        className="flex items-center justify-between"
+      >
+        <span className="truncate">{category}</span>
+        {selectedCategory === category && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="flex-shrink-0 ml-2"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
+      </DropdownMenuItem>
+    ))}
+  </DropdownMenuContent>
+</DropdownMenu>
                         <button
                           className={`flex items-center justify-center sm:w-auto ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} text-sm p-2 rounded-lg`}
                           onClick={handlePrintPdf}
                         >
-                          <Printer className="h-4 w-4 mr-1" /> Print
+                          <Printer className="h-4 w-4 mr-1" /> 
                         </button>
+                       
                         <button
                           className={`flex items-center justify-center sm:w-auto ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} text-sm p-2 rounded-lg`}
                           onClick={() => downloadCSV(stockData)}
                         >
-                          <Download className="h-4 w-4 mr-1" /> Excel
+                          <Download className="h-4 w-4 mr-1" /> 
                         </button>
                       </div>
                     </div>

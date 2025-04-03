@@ -65,7 +65,7 @@ const EditSales = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { id } = useParams();
-
+  const userType = localStorage.getItem('userType');
   const [itemData, setItemData] = useState([]);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
@@ -543,7 +543,7 @@ const EditSales = () => {
                     rows={2}
                   />
                 </div>
-                <div className="mb-2 mt-2">
+                {/* <div className="mb-2 mt-2">
                   <label className="sm:block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     <span className={`w-1 h-4 ${formData.sales_status == "Active" ? "bg-green-500" :"bg-gray-500"} rounded-full mr-2`}></span>
                     Status<span className="text-red-500">*</span>
@@ -573,7 +573,7 @@ const EditSales = () => {
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                </div>
+                </div> */}
               </div>
 
               {/* Items Section  Table */}
@@ -637,6 +637,7 @@ const EditSales = () => {
 
                             {/* Action button moved to absolute position */}
                             {row.id ? (
+                                 userType == 2 && (
                             <button
                               type="button"
                               onClick={() => handleDeleteRow(row.id)}
@@ -645,6 +646,7 @@ const EditSales = () => {
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
+                                 )
  ) : (
                             <button
                               type="button"
@@ -807,7 +809,7 @@ const EditSales = () => {
                   />
                 </div>
               </div>
-              <div className="col-span-2">
+              <div className="col-span-3">
                 <div>
                   <label
                     className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
@@ -823,7 +825,7 @@ const EditSales = () => {
                 </div>
               </div>
 
-              <div className="grid gap-1">
+              {/* <div className="grid gap-1">
                 <label htmlFor="sales_status" className="text-sm font-medium">
                   Status<span className="text-red-500">*</span>
                 </label>
@@ -851,7 +853,7 @@ const EditSales = () => {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
             </div>
             <SalesTable
               invoiceData={invoiceData}
@@ -861,6 +863,7 @@ const EditSales = () => {
               itemsData={itemsData}
               handleDeleteRow={handleDeleteRow}
               removeRow={removeRow}
+              userType={userType}
             />
           </CardContent>
         </Card>

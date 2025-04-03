@@ -23,6 +23,7 @@ import Stock from "@/app/report/Stock";
 import BuyerReport from "@/app/report/BuyerReport";
 import NotFound from "@/app/errors/NotFound";
 import Home from "@/app/home/Home";
+import SingleItemStock from "@/app/report/SingleItemStock";
 
 function AppRoutes() {
   return (
@@ -49,6 +50,7 @@ function AppRoutes() {
           <Route path="/dispatch/view/:id" element={<SalesView />} />
           <Route path="/report/stock" element={<Stock />} />
           <Route path="/report/buyer" element={<BuyerReport />} />
+          <Route path="/report/single-item-stock" element={<SingleItemStock />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

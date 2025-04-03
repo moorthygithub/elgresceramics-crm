@@ -30,7 +30,8 @@ import {
   ChevronDown,
   Edit,
   Search,
-  SquarePlus
+  SquarePlus,
+  Trash2
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -45,8 +46,8 @@ import {
 } from "@/components/ui/tooltip";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
-// import CreateItem from "./CreateItem";
-// import EditItem from "./EditItem";
+import StatusToggle from "@/components/toggle/StatusToggle";
+
 
 const PurchaseList = () => {
   const {
@@ -64,13 +65,14 @@ const PurchaseList = () => {
       return response.data.purchase;
     },
   });
-
+ 
   // State for table management
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+
   const navigate = useNavigate();
 
   // Define columns for the table
@@ -110,19 +112,20 @@ const PurchaseList = () => {
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("purchase_status");
-
+        const statusId = row.original.id;
         return (
-          <span
-            className={`px-2 py-1 rounded text-xs ${status == "Active"
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
-              }`}
-          >
-            {status}
-          </span>
+          <StatusToggle
+          initialStatus={status}
+          teamId={statusId}
+          onStatusChange={() => {
+            refetch();
+          }}
+        />
         );
       },
     },
+    
+  
     {
       id: "actions",
       header: "Action",
@@ -148,6 +151,8 @@ const PurchaseList = () => {
                   <p>Edit Purchase</p>
                 </TooltipContent>
               </Tooltip>
+
+             
             </TooltipProvider>
           </div>
         );
@@ -273,8 +278,15 @@ const PurchaseList = () => {
                             : "bg-gray-100 text-gray-800"
                             }`}
                         >
-                          {item.purchase_status}
+                          <StatusToggle
+          initialStatus={item.purchase_status}
+          teamId={item.id}
+          onStatusChange={() => {
+            refetch();
+          }}
+        />
                         </span>
+                      
                         <button
                           variant="ghost"
                           className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
@@ -285,6 +297,7 @@ const PurchaseList = () => {
                         <Edit className="w-4 h-4" />
                         </button>
                         {/* <EditItem ItemId={} /> */}
+                      
                       </div>
                     </div>
 
@@ -506,6 +519,7 @@ const PurchaseList = () => {
           </div>
         </div>
       </div>
+     
     </Page>
   );
 };

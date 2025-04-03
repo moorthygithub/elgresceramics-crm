@@ -65,7 +65,7 @@ const EditPurchase = () => {
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
-
+  const userType = localStorage.getItem('userType');
   const [formData, setFormData] = useState({
     purchase_date: "",
     purchase_buyer_name: "",
@@ -566,7 +566,7 @@ const EditPurchase = () => {
                   </div>
                 </div>
 
-                <div>
+                <div >
                   <label className="sm:block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     <span className="w-1 h-4 bg-gray-300 rounded-full mr-2"></span>
                     Remark
@@ -579,7 +579,7 @@ const EditPurchase = () => {
                     rows={2}
                   />
                 </div>
-                <div className="mb-2 mt-2">
+                {/* <div className="mb-2 mt-2">
                   <label className="sm:block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     <span className={`w-1 h-4 ${formData.purchase_status == "Active" ? "bg-green-500" :"bg-gray-500"} rounded-full mr-2`}></span>
                     Status<span className="text-red-500">*</span>
@@ -609,7 +609,7 @@ const EditPurchase = () => {
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                </div>
+                </div> */}
               </div>
 
               {/* Items Section  Table */}
@@ -672,7 +672,8 @@ const EditPurchase = () => {
                             )}
 
                             {/* Action button moved to absolute position */}
-                            {row.id ? (
+                            {row.id  ? (
+                               userType == 2 && (
                             <button
                               type="button"
                               onClick={() => handleDeleteRow(row.id)}
@@ -681,6 +682,7 @@ const EditPurchase = () => {
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
+                              )
  ) : (
                             <button
                               type="button"
@@ -844,7 +846,7 @@ const EditPurchase = () => {
                       />
                     </div>
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-3">
                     <div>
                       <label
                         className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
@@ -860,7 +862,7 @@ const EditPurchase = () => {
                     </div>
                   </div>
 
-                  <div className="grid gap-1">
+                  {/* <div className="grid gap-1">
                     <label
                       htmlFor="purchase_status"
                       className="text-sm font-medium"
@@ -891,7 +893,7 @@ const EditPurchase = () => {
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 overflow-x-auto">
@@ -970,6 +972,7 @@ const EditPurchase = () => {
                           <TableCell className="p-2 border">
                             <TableCell className="p-2 ">
                               {row.id ? (
+                                  userType == 2 && (
                                 <Button
                                   variant="ghost"
                                   onClick={() => handleDeleteRow(row.id)}
@@ -978,6 +981,7 @@ const EditPurchase = () => {
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
+                                  )
                               ) : (
                                 <Button
                                   variant="ghost"

@@ -115,6 +115,10 @@ export function AppSidebar({ ...props }) {
             title: "Buyer",
             url: "/report/buyer",
           },
+          {
+            title: "Single Item Stock",
+            url: "/report/single-item-stock",
+          },
         ],
       },
     ],
