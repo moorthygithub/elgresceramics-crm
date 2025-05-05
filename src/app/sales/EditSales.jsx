@@ -39,7 +39,13 @@ import {
   useFetchItems,
 } from "@/hooks/useApi";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MinusCircle, PlusCircle, SquarePlus, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  MinusCircle,
+  PlusCircle,
+  SquarePlus,
+  Trash2,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
@@ -65,7 +71,7 @@ const EditSales = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { id } = useParams();
-  const userType = localStorage.getItem('userType');
+  const userType = localStorage.getItem("userType");
   const [itemData, setItemData] = useState([]);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
@@ -231,11 +237,7 @@ const EditSales = () => {
     setDeleteItemId(productId);
     setDeleteConfirmOpen(true);
   };
-  const handlePaymentChange = (
-    selectedValue,
-    rowIndex,
-    fieldName
-  ) => {
+  const handlePaymentChange = (selectedValue, rowIndex, fieldName) => {
     let value;
 
     if (selectedValue && selectedValue.target) {
@@ -258,12 +260,9 @@ const EditSales = () => {
       if (selectedItem) {
         updatedData[rowIndex]["sales_sub_category"] =
           selectedItem.item_category;
-        updatedData[rowIndex]["sales_sub_size"] =
-          selectedItem.item_size;
-        updatedData[rowIndex]["sales_sub_brand"] =
-          selectedItem.item_brand;
-        updatedData[rowIndex]["sales_sub_weight"] =
-          selectedItem.item_weight;
+        updatedData[rowIndex]["sales_sub_size"] = selectedItem.item_size;
+        updatedData[rowIndex]["sales_sub_brand"] = selectedItem.item_brand;
+        updatedData[rowIndex]["sales_sub_weight"] = selectedItem.item_weight;
       }
 
       setInvoiceData(updatedData);
@@ -420,9 +419,8 @@ const EditSales = () => {
 
   return (
     <Page>
-<div className="p-0 md:p-4">
-
-<div className="sm:hidden bg-gradient-to-b from-yellow-50 to-white min-h-screen">
+      <div className="p-0 md:p-4">
+        <div className="sm:hidden bg-gradient-to-b from-yellow-50 to-white min-h-screen">
           <form onSubmit={handleSubmit} className="flex flex-col h-full">
             {/* Premium Header Section */}
             <div className="bg-gradient-to-r from-yellow-600 to-yellow-400 text-white shadow-lg relative overflow-hidden">
@@ -439,8 +437,12 @@ const EditSales = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </button>
                 <div className="flex flex-col">
-                  <h1 className="text-xl font-bold tracking-wide">Update Dispatch</h1>
-                  <p className="text-xs text-yellow-100 mt-0.5 opacity-90">Modify existing dispatch details</p>
+                  <h1 className="text-xl font-bold tracking-wide">
+                    Update Dispatch
+                  </h1>
+                  <p className="text-xs text-yellow-100 mt-0.5 opacity-90">
+                    Modify existing dispatch details
+                  </p>
                 </div>
               </div>
             </div>
@@ -510,6 +512,7 @@ const EditSales = () => {
                       Ref No<span className="text-red-500">*</span>
                     </label>
                     <Input
+                      disabled
                       className="bg-white border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-yellow-300 focus:border-yellow-400"
                       value={formData.sales_ref_no}
                       onChange={(e) => handleInputChange(e, "sales_ref_no")}
@@ -581,7 +584,9 @@ const EditSales = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <span className="w-1.5 h-5 bg-yellow-500 rounded-full mr-2"></span>
-                    <h2 className="text-base font-semibold text-gray-800">Items</h2>
+                    <h2 className="text-base font-semibold text-gray-800">
+                      Items
+                    </h2>
                     <button
                       type="button"
                       className="flex items-center text-xs text-yellow-600 font-medium bg-yellow-50 px-2 py-0.5 rounded-full"
@@ -590,7 +595,6 @@ const EditSales = () => {
                       <CreateItem />
                     </button>
                   </div>
-                
                 </div>
 
                 {/*  Item Table */}
@@ -616,7 +620,11 @@ const EditSales = () => {
                             <MemoizedProductSelect
                               value={row.sales_sub_item}
                               onChange={(e) =>
-                                handlePaymentChange(e, rowIndex, "sales_sub_item")
+                                handlePaymentChange(
+                                  e,
+                                  rowIndex,
+                                  "sales_sub_item"
+                                )
                               }
                               options={
                                 itemsData?.items?.map((product) => ({
@@ -629,7 +637,9 @@ const EditSales = () => {
                             />
                             {row.sales_sub_item && (
                               <div className="text-xs text-gray-600 mt-1 flex items-center">
-                                <span className="bg-yellow-100 px-1.5 py-0.5 rounded text-yellow-800">{row.sales_sub_category}</span>
+                                <span className="bg-yellow-100 px-1.5 py-0.5 rounded text-yellow-800">
+                                  {row.sales_sub_category}
+                                </span>
                                 {/* <span className="mx-1">•</span> */}
                                 {/* <span>{row.sales_sub_size}</span> */}
                               </div>
@@ -637,27 +647,29 @@ const EditSales = () => {
 
                             {/* Action button moved to absolute position */}
                             {row.id ? (
-                                 userType == 2 && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteRow(row.id)}
-                             
-                              className={`absolute top-2 right-2 rounded-full p-1  bg-red-200 text-red-500`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                                 )
- ) : (
-                            <button
-                              type="button"
-                              onClick={() => removeRow(rowIndex)}
-                              disabled={invoiceData.length === 1}
-                              className={`absolute top-2 right-2 rounded-full p-1 ${invoiceData.length === 1 ? 'bg-gray-200 text-gray-400' : 'bg-red-100 text-red-500'}`}
-                            >
-                              <MinusCircle className="h-4 w-4" />
-                            </button>
-       )}
-
+                              userType == 2 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteRow(row.id)}
+                                  className={`absolute top-2 right-2 rounded-full p-1  bg-red-200 text-red-500`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              )
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => removeRow(rowIndex)}
+                                disabled={invoiceData.length === 1}
+                                className={`absolute top-2 right-2 rounded-full p-1 ${
+                                  invoiceData.length === 1
+                                    ? "bg-gray-200 text-gray-400"
+                                    : "bg-red-100 text-red-500"
+                                }`}
+                              >
+                                <MinusCircle className="h-4 w-4" />
+                              </button>
+                            )}
                           </TableCell>
 
                           <TableCell className="px-3 py-2.5">
@@ -666,14 +678,20 @@ const EditSales = () => {
                               className="bg-white border border-gray-300 w-full text-xs"
                               value={row.sales_sub_box}
                               onChange={(e) =>
-                                handlePaymentChange(e, rowIndex, "sales_sub_box")
+                                handlePaymentChange(
+                                  e,
+                                  rowIndex,
+                                  "sales_sub_box"
+                                )
                               }
                               placeholder="Qty"
                               type="number"
                             />
                             {row.sales_sub_item && (
                               <div className="text-xs text-gray-600 mt-1">
-                                <span className="inline-block bg-gray-100 px-1.5 py-0.5 rounded">{row.sales_sub_brand}</span>
+                                <span className="inline-block bg-gray-100 px-1.5 py-0.5 rounded">
+                                  {row.sales_sub_brand}
+                                </span>
                               </div>
                             )}
                           </TableCell>
@@ -708,124 +726,122 @@ const EditSales = () => {
                 </Button>
               </div>
 
-
               <div className="h-4"></div>
             </div>
           </form>
         </div>
 
+        <div className="hidden sm:block">
+          <form onSubmit={handleSubmit} className="w-full  grid grid-cols-1">
+            <BranchHeader />
+            <Card className={`mb-6 ${ButtonConfig.cardColor}`}>
+              <CardContent className="p-6">
+                <div className="grid-cols-1 md:grid md:grid-cols-4 gap-2">
+                  <div>
+                    <label
+                      className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                    >
+                      Date<span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      className="bg-white"
+                      value={formData.sales_date}
+                      onChange={(e) => handleInputChange(e, "sales_date")}
+                      placeholder="Enter Sales Date"
+                      type="date"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className={`block ${ButtonConfig.cardLabel} text-sm mb-3  font-medium flex justify-between items-center`}
+                    >
+                      <span className="flex items-center space-x-1">
+                        <SquarePlus className="h-3 w-3 text-red-600" />
+                        <CreateBuyer />
+                      </span>
+                    </label>
+                    <MemoizedSelect
+                      value={formData.sales_buyer_name}
+                      onChange={(e) => handleInputChange(e, "sales_buyer_name")}
+                      options={
+                        buyerData?.buyers?.map((buyer) => ({
+                          value: buyer.buyer_name,
+                          label: buyer.buyer_name,
+                        })) || []
+                      }
+                      placeholder="Select Buyer"
+                    />
+                  </div>
 
+                  <div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        City<span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        className="bg-white"
+                        value={formData.sales_buyer_city}
+                        onChange={(e) =>
+                          handleInputChange(e, "sales_buyer_city")
+                        }
+                        placeholder="Enter City"
+                        disabled
+                      />
+                    </div>
+                  </div>
 
+                  <div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        Ref No<span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        disabled
+                        className="bg-white"
+                        value={formData.sales_ref_no}
+                        onChange={(e) => handleInputChange(e, "sales_ref_no")}
+                        placeholder="Enter Ref No"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        Vehicle No
+                      </label>
+                      <Input
+                        className="bg-white"
+                        value={formData.sales_vehicle_no}
+                        onChange={(e) =>
+                          handleInputChange(e, "sales_vehicle_no")
+                        }
+                        placeholder="Enter Vehicle No"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-span-3">
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        Remark
+                      </label>
+                      <Textarea
+                        className="bg-white"
+                        value={formData.sales_remark}
+                        onChange={(e) => handleInputChange(e, "sales_remark")}
+                        placeholder="Enter Remark"
+                      />
+                    </div>
+                  </div>
 
-
-
-
-      <div className="hidden sm:block">
-      <form onSubmit={handleSubmit} className="w-full  grid grid-cols-1">
-        <BranchHeader />
-        <Card className={`mb-6 ${ButtonConfig.cardColor}`}>
-          <CardContent className="p-6">
-            <div className="grid-cols-1 md:grid md:grid-cols-4 gap-2">
-              <div>
-                <label
-                  className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                >
-                  Date<span className="text-red-500">*</span>
-                </label>
-                <Input
-                  className="bg-white"
-                  value={formData.sales_date}
-                  onChange={(e) => handleInputChange(e, "sales_date")}
-                  placeholder="Enter Sales Date"
-                  type="date"
-                />
-              </div>
-              <div>
-                <label
-                  className={`block ${ButtonConfig.cardLabel} text-sm mb-3  font-medium flex justify-between items-center`}
-                >
-                  <span className="flex items-center space-x-1">
-                    <SquarePlus className="h-3 w-3 text-red-600" />
-                    <CreateBuyer />
-                  </span>
-                </label>
-                <MemoizedSelect
-                  value={formData.sales_buyer_name}
-                  onChange={(e) => handleInputChange(e, "sales_buyer_name")}
-                  options={
-                    buyerData?.buyers?.map((buyer) => ({
-                      value: buyer.buyer_name,
-                      label: buyer.buyer_name,
-                    })) || []
-                  }
-                  placeholder="Select Buyer"
-                />
-              </div>
-
-              <div>
-                <div>
-                  <label
-                    className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                  >
-                    City<span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    className="bg-white"
-                    value={formData.sales_buyer_city}
-                    onChange={(e) => handleInputChange(e, "sales_buyer_city")}
-                    placeholder="Enter City"
-                    disabled
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div>
-                  <label
-                    className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                  >
-                    Ref No<span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    className="bg-white"
-                    value={formData.sales_ref_no}
-                    onChange={(e) => handleInputChange(e, "sales_ref_no")}
-                    placeholder="Enter Ref No"
-                  />
-                </div>
-              </div>
-              <div>
-                <div>
-                  <label
-                    className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                  >
-                    Vehicle No
-                  </label>
-                  <Input
-                    className="bg-white"
-                    value={formData.sales_vehicle_no}
-                    onChange={(e) => handleInputChange(e, "sales_vehicle_no")}
-                    placeholder="Enter Vehicle No"
-                  />
-                </div>
-              </div>
-              <div className="col-span-3">
-                <div>
-                  <label
-                    className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                  >
-                    Remark
-                  </label>
-                  <Textarea
-                    className="bg-white"
-                    value={formData.sales_remark}
-                    onChange={(e) => handleInputChange(e, "sales_remark")}
-                    placeholder="Enter Remark"
-                  />
-                </div>
-              </div>
-
-              {/* <div className="grid gap-1">
+                  {/* <div className="grid gap-1">
                 <label htmlFor="sales_status" className="text-sm font-medium">
                   Status<span className="text-red-500">*</span>
                 </label>
@@ -854,46 +870,45 @@ const EditSales = () => {
                   </SelectContent>
                 </Select>
               </div> */}
+                </div>
+                <SalesTable
+                  invoiceData={invoiceData}
+                  itemData={itemData}
+                  setInvoiceData={setInvoiceData}
+                  addRow={addRow}
+                  itemsData={itemsData}
+                  handleDeleteRow={handleDeleteRow}
+                  removeRow={removeRow}
+                  userType={userType}
+                />
+              </CardContent>
+            </Card>
+
+            <div className="flex flex-row items-center gap-2 justify-end">
+              <Button
+                type="submit"
+                className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
+                disabled={
+                  invoiceData.length < 1 || createBranchMutation.isPending
+                }
+              >
+                {createBranchMutation.isPending
+                  ? "Submitting..."
+                  : "Update Dispatch"}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  navigate("/dispatch");
+                }}
+                className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
+              >
+                Go Back
+              </Button>
             </div>
-            <SalesTable
-              invoiceData={invoiceData}
-              itemData={itemData}
-              setInvoiceData={setInvoiceData}
-              addRow={addRow}
-              itemsData={itemsData}
-              handleDeleteRow={handleDeleteRow}
-              removeRow={removeRow}
-              userType={userType}
-            />
-          </CardContent>
-        </Card>
-
-        <div className="flex flex-row items-center gap-2 justify-end">
-          <Button
-            type="submit"
-            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
-            disabled={invoiceData.length < 1 || createBranchMutation.isPending}
-          >
-            {createBranchMutation.isPending
-              ? "Submitting..."
-              : "Update Dispatch"}
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              navigate("/dispatch");
-            }}
-            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
-          >
-            Go Back
-          </Button>
+          </form>
         </div>
-      </form>
-
       </div>
-
-      </div>
-
 
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>

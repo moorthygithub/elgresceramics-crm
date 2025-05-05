@@ -32,7 +32,14 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import axios from "axios";
-import { ChevronDown, Edit, Search, SquarePlus, View } from "lucide-react";
+import {
+  ChevronDown,
+  Edit,
+  Search,
+  SquarePlus,
+  Trash2,
+  View,
+} from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -41,6 +48,17 @@ import Loader from "@/components/loader/Loader";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
 import StatusToggle from "@/components/toggle/StatusToggle";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 // import CreateItem from "./CreateItem";
 // import EditItem from "./EditItem";
 
@@ -62,13 +80,60 @@ const SalesList = () => {
   });
 
   // State for table management
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState(null);
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const UserId = localStorage.getItem("userType");
+  const { toast } = useToast();
 
+  const handleDeleteRow = (productId) => {
+    setDeleteItemId(productId);
+    setDeleteConfirmOpen(true);
+  };
+  const confirmDelete = async () => {
+    try {
+      const response = await axios.delete(`/api/sales/${deleteItemId}`);
+      const data = response.data;
+
+      if (data.code === 200) {
+        toast({
+          title: "Success",
+          description: data.msg,
+        });
+        refetch();
+      } else if (data.code === 400) {
+        toast({
+          title: "Duplicate Entry",
+          description: data.msg,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.msg || "Something went wrong.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Unexpected Error",
+        description:
+          error?.response?.data?.msg ||
+          error.message ||
+          "Something unexpected happened.",
+        variant: "destructive",
+      });
+      console.error("Failed to delete product:", error);
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeleteItemId(null);
+    }
+  };
   // Define columns for the table
   const columns = [
     {
@@ -109,12 +174,12 @@ const SalesList = () => {
         const statusId = row.original.id;
         return (
           <StatusToggle
-          initialStatus={status}
-          teamId={statusId}
-          onStatusChange={() => {
-            refetch();
-          }}
-        />
+            initialStatus={status}
+            teamId={statusId}
+            onStatusChange={() => {
+              refetch();
+            }}
+          />
         );
       },
     },
@@ -163,6 +228,25 @@ const SalesList = () => {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            {UserId != 1 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleDeleteRow(salesId)}
+                      className="text-red-500"
+                      type="button"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete Purchase</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         );
       },
@@ -231,7 +315,6 @@ const SalesList = () => {
   return (
     <Page>
       <div className="w-full p-0 md:p-4 grid grid-cols-1">
-
         <div className="sm:hidden">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl md:text-2xl text-gray-800 font-medium">
@@ -291,14 +374,13 @@ const SalesList = () => {
                           }`}
                           onClick={(e) => e.stopPropagation()}
                         >
-                  
-                            <StatusToggle
-                                    initialStatus={item.sales_status}
-                                    teamId={item.id}
-                                    onStatusChange={() => {
-                                      refetch();
-                                    }}
-                                  />
+                          <StatusToggle
+                            initialStatus={item.sales_status}
+                            teamId={item.id}
+                            onStatusChange={() => {
+                              refetch();
+                            }}
+                          />
                         </span>
                         <button
                           className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
@@ -309,6 +391,15 @@ const SalesList = () => {
                         >
                           <Edit className="w-4 h-4" />
                         </button>
+                        {UserId != 1 && (
+                          <button
+                            variant="ghost"
+                            // className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
+                            onClick={() => handleDeleteRow(item.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        )}
                         {/* <EditItem ItemId={} /> */}
                       </div>
                     </div>
@@ -403,8 +494,6 @@ const SalesList = () => {
             )}
           </div>
         </div>
-
-
 
         <div className="hidden sm:block">
           <div className="flex text-left text-2xl text-gray-800 font-[400]">
@@ -541,6 +630,26 @@ const SalesList = () => {
           </div>
         </div>
       </div>
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              disapatch.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className={`${ButtonConfig.backgroundColor}  ${ButtonConfig.textColor} text-black hover:bg-red-600`}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Page>
   );
 };

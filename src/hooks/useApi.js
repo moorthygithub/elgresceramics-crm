@@ -39,3 +39,9 @@ export const useFetchCategory = () => {
 export const useFetchItems = () => {
   return useQuery(createQueryConfig(["items"], "/api/items"));
 };
+export const useFetchPurchaseRef = () => {
+  return useQuery(createQueryConfig(["purchasesref"], "/api/purchases-ref"));
+};
+export const useFetchSalesRef = () => {
+  return useQuery(createQueryConfig(["salesref"], "/api/sales-ref"));
+};

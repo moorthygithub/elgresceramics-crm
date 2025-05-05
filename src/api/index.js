@@ -28,9 +28,10 @@ export const BUYER_REPORT = `${BASE_URL}/api/report-buyer-data`;
 export const BUYER_DOWNLOAD = `${BASE_URL}/api/download-buyer-data`;
 export const STOCK_REPORT = `${BASE_URL}/api/stock`;
 export const SINGLE_ITEM_STOCK_REPORT = `${BASE_URL}/api/item-stock`;
+export const PURCHASE_REPORT = `${BASE_URL}/api/report-purchases-data`;
+export const SALES_REPORT = `${BASE_URL}/api/report-sales-data`;
 
-
-// ROUTE CONFIGURATION 
+// ROUTE CONFIGURATION
 export const ROUTES = {
   PURCHASE_EDIT: (id) => `/purchase/edit/${encryptId(id)}`,
   SALES_EDIT: (id) => `/dispatch/edit/${encryptId(id)}`,
@@ -86,7 +87,6 @@ export const fetchSalesById = async (encryptedId) => {
   }
 };
 
-
 export const updatePurchaseEdit = async (encryptedId, data) => {
   try {
     const token = localStorage.getItem("token");
@@ -122,21 +122,14 @@ export const updateSalesEdit = async (encryptedId, data) => {
 
     const requestData = data.data || data;
 
-    const response = await axios.put(
-      `${SALES_EDIT_LIST}/${id}`,
-      requestData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.put(`${SALES_EDIT_LIST}/${id}`, requestData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
   }
 };
-
-
-

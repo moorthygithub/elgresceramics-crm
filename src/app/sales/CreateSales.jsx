@@ -20,6 +20,7 @@ import {
   useFetchBuyers,
   useFetchCategory,
   useFetchItems,
+  useFetchSalesRef,
 } from "@/hooks/useApi";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, MinusCircle, PlusCircle, SquarePlus } from "lucide-react";
@@ -191,6 +192,8 @@ const CreateSales = () => {
   const { data: buyerData } = useFetchBuyers();
   const { data: categoryData } = useFetchCategory();
   const { data: itemsData } = useFetchItems();
+  const { data: salesRef } = useFetchSalesRef();
+
   const handlePaymentChange = (selectedValue, rowIndex, fieldName) => {
     let value;
 
@@ -217,6 +220,10 @@ const CreateSales = () => {
         updatedData[rowIndex]["sales_sub_size"] = selectedItem.item_size;
         updatedData[rowIndex]["sales_sub_brand"] = selectedItem.item_brand;
         updatedData[rowIndex]["sales_sub_weight"] = selectedItem.item_weight;
+        updatedData[rowIndex]["sales_sub_box"] =
+          selectedItem.openpurch -
+          selectedItem.closesale +
+          (selectedItem.purch - selectedItem.sale);
       }
       focusBoxInput(rowIndex);
       setInvoiceData(updatedData);
@@ -319,8 +326,7 @@ const CreateSales = () => {
   return (
     <Page>
       <div className="p-0 md:p-4">
-
-      <div className="sm:hidden bg-gradient-to-b from-yellow-50 to-white min-h-screen">
+        <div className="sm:hidden bg-gradient-to-b from-yellow-50 to-white min-h-screen">
           <form onSubmit={handleSubmit} className="flex flex-col h-full">
             {/* Premium Header Section */}
             <div className="bg-gradient-to-r from-yellow-600 to-yellow-400 text-white shadow-lg relative overflow-hidden">
@@ -337,8 +343,12 @@ const CreateSales = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </button>
                 <div className="flex flex-col">
-                  <h1 className="text-xl font-bold tracking-wide">Create Dispatch</h1>
-                  <p className="text-xs text-yellow-100 mt-0.5 opacity-90">Add new dispatch details</p>
+                  <h1 className="text-xl font-bold tracking-wide">
+                    Create Dispatch
+                  </h1>
+                  <p className="text-xs text-yellow-100 mt-0.5 opacity-90">
+                    Add new dispatch details
+                  </p>
                 </div>
               </div>
             </div>
@@ -407,11 +417,27 @@ const CreateSales = () => {
                       <span className="w-1 h-4 bg-yellow-500 rounded-full mr-2"></span>
                       Ref No<span className="text-red-500">*</span>
                     </label>
-                    <Input
+                    {/* <Input
                       className="bg-white border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-yellow-300 focus:border-yellow-400"
                       value={formData.sales_ref_no}
                       onChange={(e) => handleInputChange(e, "sales_ref_no")}
                       placeholder="Ref No"
+                    /> */}
+                    <MemoizedSelect
+                      value={formData.sales_ref_no}
+                      onChange={(e) => handleInputChange(e, "sales_ref_no")}
+                      options={
+                        salesRef
+                          ? [
+                              {
+                                value: salesRef.sales_ref,
+                                label: salesRef.sales_ref,
+                              },
+                            ]
+                          : []
+                      }
+                      placeholder="Select Ref"
+                      className="bg-white focus:ring-2 focus:ring-yellow-300"
                     />
                   </div>
                   <div>
@@ -448,7 +474,9 @@ const CreateSales = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <span className="w-1.5 h-5 bg-yellow-500 rounded-full mr-2"></span>
-                    <h2 className="text-base font-semibold text-gray-800">Items</h2>
+                    <h2 className="text-base font-semibold text-gray-800">
+                      Items
+                    </h2>
                     <button
                       type="button"
                       className="flex items-center text-xs text-yellow-600 font-medium bg-yellow-50 px-2 py-0.5 rounded-full"
@@ -456,7 +484,6 @@ const CreateSales = () => {
                       <SquarePlus className="h-3 w-3 mr-1" />
                       <CreateItem />
                     </button>
-                
                   </div>
                   <button
                     type="button"
@@ -491,7 +518,11 @@ const CreateSales = () => {
                             <MemoizedProductSelect
                               value={row.sales_sub_item}
                               onChange={(e) =>
-                                handlePaymentChange(e, rowIndex, "sales_sub_item")
+                                handlePaymentChange(
+                                  e,
+                                  rowIndex,
+                                  "sales_sub_item"
+                                )
                               }
                               options={
                                 itemsData?.items?.map((product) => ({
@@ -504,7 +535,9 @@ const CreateSales = () => {
                             />
                             {row.sales_sub_item && (
                               <div className="text-xs text-gray-600 mt-1 flex items-center">
-                                <span className="bg-yellow-100 px-1.5 py-0.5 rounded text-yellow-800">{row.sales_sub_category}</span>
+                                <span className="bg-yellow-100 px-1.5 py-0.5 rounded text-yellow-800">
+                                  {row.sales_sub_category}
+                                </span>
                                 {/* <span className="mx-1">•</span> */}
                                 {/* <span>{row.sales_sub_size}</span> */}
                               </div>
@@ -515,7 +548,11 @@ const CreateSales = () => {
                               type="button"
                               onClick={() => removeRow(rowIndex)}
                               disabled={invoiceData.length === 1}
-                              className={`absolute top-2 right-2 rounded-full p-1 ${invoiceData.length === 1 ? 'bg-gray-200 text-gray-400' : 'bg-red-100 text-red-500'}`}
+                              className={`absolute top-2 right-2 rounded-full p-1 ${
+                                invoiceData.length === 1
+                                  ? "bg-gray-200 text-gray-400"
+                                  : "bg-red-100 text-red-500"
+                              }`}
                             >
                               <MinusCircle className="h-4 w-4" />
                             </button>
@@ -523,18 +560,26 @@ const CreateSales = () => {
 
                           <TableCell className="px-3 py-2.5">
                             <Input
-                              ref={(el) => (boxInputRefs.current[rowIndex] = el)}
+                              ref={(el) =>
+                                (boxInputRefs.current[rowIndex] = el)
+                              }
                               className="bg-white border border-gray-300 w-full text-xs"
                               value={row.sales_sub_box}
                               onChange={(e) =>
-                                handlePaymentChange(e, rowIndex, "sales_sub_box")
+                                handlePaymentChange(
+                                  e,
+                                  rowIndex,
+                                  "sales_sub_box"
+                                )
                               }
                               placeholder="Qty"
                               type="number"
                             />
                             {row.sales_sub_item && (
                               <div className="text-xs text-gray-600 mt-1">
-                                <span className="inline-block bg-gray-100 px-1.5 py-0.5 rounded">{row.sales_sub_brand}</span>
+                                <span className="inline-block bg-gray-100 px-1.5 py-0.5 rounded">
+                                  {row.sales_sub_brand}
+                                </span>
                               </div>
                             )}
                           </TableCell>
@@ -569,223 +614,254 @@ const CreateSales = () => {
                 </Button>
               </div>
 
-       
               <div className="h-4"></div>
             </div>
           </form>
         </div>
-     
-     <div className=" hidden sm:block">
-      <form onSubmit={handleSubmit} className="w-full  grid grid-cols-1">
-        <BranchHeader />
-        <Card className={`mb-6 ${ButtonConfig.cardColor}`}>
-          <CardContent className="p-6">
-            <div className="grid  grid-cols-1 md:grid-cols-4 gap-2">
-              <div>
-                <div>
-                  <label
-                    className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                  >
-                    Date<span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    className="bg-white"
-                    value={formData.sales_date}
-                    onChange={(e) => handleInputChange(e, "sales_date")}
-                    placeholder="Enter Date"
-                    type="date"
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  className={`block ${ButtonConfig.cardLabel} text-sm mb-2 font-medium flex justify-between items-center`}
-                >
-                  <span className="flex items-center space-x-1">
-                    <SquarePlus className="h-3 w-3 text-red-600" />
-                    <CreateBuyer />
-                  </span>
-                </label>
 
-                <MemoizedSelect
-                  value={formData.sales_buyer_name}
-                  onChange={(e) => handleInputChange(e, "sales_buyer_name")}
-                  options={
-                    buyerData?.buyers?.map((buyer) => ({
-                      value: buyer.buyer_name,
-                      label: buyer.buyer_name,
-                    })) || []
-                  }
-                  placeholder="Select Buyer"
-                />
-              </div>
-
-              <div>
-                <div>
-                  <label
-                    className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                  >
-                    City<span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    className="bg-white"
-                    value={formData.sales_buyer_city}
-                    onChange={(e) => handleInputChange(e, "sales_buyer_city")}
-                    placeholder="Enter City"
-                    disabled
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div>
-                  <label
-                    className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                  >
-                    Ref No<span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    className="bg-white"
-                    value={formData.sales_ref_no}
-                    onChange={(e) => handleInputChange(e, "sales_ref_no")}
-                    placeholder="Enter Ref No"
-                  />
-                </div>
-              </div>
-              <div>
-                <div>
-                  <label
-                    className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                  >
-                    Vehicle No
-                  </label>
-                  <Input
-                    className="bg-white"
-                    value={formData.sales_vehicle_no}
-                    onChange={(e) => handleInputChange(e, "sales_vehicle_no")}
-                    placeholder="Enter Vehicle No"
-                  />
-                </div>
-              </div>
-              <div className="md:col-span-3">
-                <div>
-                  <label
-                    className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
-                  >
-                    Remark
-                  </label>
-                  <Textarea
-                    className="bg-white"
-                    value={formData.sales_remark}
-                    onChange={(e) => handleInputChange(e, "sales_remark")}
-                    placeholder="Enter Remark"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <Table className="border border-gray-300 rounded-lg shadow-sm">
-                <TableHeader>
-                  <TableRow className="bg-gray-100">
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      <div className="flex items-center">
-                        <SquarePlus className="h-3 w-3 mr-1 text-red-600" />
-                        <CreateItem />
-                      </div>
-                    </TableHead>
-
-                    <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
-                      Box<span className="text-red-500 ml-1">*</span>
-                    </TableHead>
-                    <TableHead className="text-sm font-semibold py-3 px-4 w-1/6 text-center">
-                      Action
-                      <PlusCircle
-                        onClick={addRow}
-                        className="inline-block ml-2 cursor-pointer text-blue-500 hover:text-gray-800 h-4 w-4"
+        <div className=" hidden sm:block">
+          <form onSubmit={handleSubmit} className="w-full  grid grid-cols-1">
+            <BranchHeader />
+            <Card className={`mb-6 ${ButtonConfig.cardColor}`}>
+              <CardContent className="p-6">
+                <div className="grid  grid-cols-1 md:grid-cols-4 gap-2">
+                  <div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        Date<span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        className="bg-white"
+                        value={formData.sales_date}
+                        onChange={(e) => handleInputChange(e, "sales_date")}
+                        placeholder="Enter Date"
+                        type="date"
                       />
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {invoiceData.map((row, rowIndex) => (
-                    <TableRow
-                      key={rowIndex}
-                      className="border-t border-gray-200 hover:bg-gray-50"
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      className={`block ${ButtonConfig.cardLabel} text-sm mb-2 font-medium flex justify-between items-center`}
                     >
-                      <TableCell className="px-4 py-2">
-                        <MemoizedProductSelect
-                          value={row.sales_sub_item}
-                          onChange={(e) =>
-                            handlePaymentChange(e, rowIndex, "sales_sub_item")
-                          }
-                          options={
-                            itemsData?.items?.map((product) => ({
-                              value: product.item_name,
-                              label: product.item_name,
-                            })) || []
-                          }
-                          placeholder="Select Item"
-                        />
-                        {row.sales_sub_item && (
-                          <div className="text-sm text-black mt-1">
-                            •{row.sales_sub_category} • {row.sales_sub_size}
-                          </div>
-                        )}
-                      </TableCell>
+                      <span className="flex items-center space-x-1">
+                        <SquarePlus className="h-3 w-3 text-red-600" />
+                        <CreateBuyer />
+                      </span>
+                    </label>
 
-                      <TableCell className="px-4 py-2 min-w-28 ">
-                        <Input
-                          className="bg-white border border-gray-300"
-                          value={row.sales_sub_box}
-                          onChange={(e) =>
-                            handlePaymentChange(e, rowIndex, "sales_sub_box")
-                          }
-                          placeholder="Enter Box"
-                        />
-                        {row.sales_sub_item && (
-                          <div className="text-sm text-black mt-1">
-                            • {row.sales_sub_brand}
+                    <MemoizedSelect
+                      value={formData.sales_buyer_name}
+                      onChange={(e) => handleInputChange(e, "sales_buyer_name")}
+                      options={
+                        buyerData?.buyers?.map((buyer) => ({
+                          value: buyer.buyer_name,
+                          label: buyer.buyer_name,
+                        })) || []
+                      }
+                      placeholder="Select Buyer"
+                    />
+                  </div>
+
+                  <div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        City<span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        className="bg-white"
+                        value={formData.sales_buyer_city}
+                        onChange={(e) =>
+                          handleInputChange(e, "sales_buyer_city")
+                        }
+                        placeholder="Enter City"
+                        disabled
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        Ref No<span className="text-red-500">*</span>
+                      </label>
+                      {/* <Input
+                        className="bg-white"
+                        value={formData.sales_ref_no}
+                        onChange={(e) => handleInputChange(e, "sales_ref_no")}
+                        placeholder="Enter Ref No"
+                      /> */}
+                      <MemoizedSelect
+                        value={formData.sales_ref_no}
+                        onChange={(e) => handleInputChange(e, "sales_ref_no")}
+                        options={
+                          salesRef
+                            ? [
+                                {
+                                  value: salesRef.sales_ref,
+                                  label: salesRef.sales_ref,
+                                },
+                              ]
+                            : []
+                        }
+                        placeholder="Select Ref"
+                        className="bg-white focus:ring-2 focus:ring-yellow-300"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        Vehicle No
+                      </label>
+                      <Input
+                        className="bg-white"
+                        value={formData.sales_vehicle_no}
+                        onChange={(e) =>
+                          handleInputChange(e, "sales_vehicle_no")
+                        }
+                        placeholder="Enter Vehicle No"
+                      />
+                    </div>
+                  </div>
+                  <div className="md:col-span-3">
+                    <div>
+                      <label
+                        className={`block  ${ButtonConfig.cardLabel} text-sm mb-2 font-medium `}
+                      >
+                        Remark
+                      </label>
+                      <Textarea
+                        className="bg-white"
+                        value={formData.sales_remark}
+                        onChange={(e) => handleInputChange(e, "sales_remark")}
+                        placeholder="Enter Remark"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <Table className="border border-gray-300 rounded-lg shadow-sm">
+                    <TableHeader>
+                      <TableRow className="bg-gray-100">
+                        <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
+                          <div className="flex items-center">
+                            <SquarePlus className="h-3 w-3 mr-1 text-red-600" />
+                            <CreateItem />
                           </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="p-2 border">
-                        <Button
-                          variant="ghost"
-                          onClick={() => removeRow(rowIndex)}
-                          disabled={invoiceData.length === 1}
-                          className="text-red-500 "
-                          type="button"
+                        </TableHead>
+
+                        <TableHead className="text-sm font-semibold text-gray-600 py-2 px-4">
+                          Box<span className="text-red-500 ml-1">*</span>
+                        </TableHead>
+                        <TableHead className="text-sm font-semibold py-3 px-4 w-1/6 text-center">
+                          Action
+                          <PlusCircle
+                            onClick={addRow}
+                            className="inline-block ml-2 cursor-pointer text-blue-500 hover:text-gray-800 h-4 w-4"
+                          />
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {invoiceData.map((row, rowIndex) => (
+                        <TableRow
+                          key={rowIndex}
+                          className="border-t border-gray-200 hover:bg-gray-50"
                         >
-                          <MinusCircle className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                          <TableCell className="px-4 py-2">
+                            <MemoizedProductSelect
+                              value={row.sales_sub_item}
+                              onChange={(e) =>
+                                handlePaymentChange(
+                                  e,
+                                  rowIndex,
+                                  "sales_sub_item"
+                                )
+                              }
+                              options={
+                                itemsData?.items?.map((product) => ({
+                                  value: product.item_name,
+                                  label: product.item_name,
+                                })) || []
+                              }
+                              placeholder="Select Item"
+                            />
+                            {row.sales_sub_item && (
+                              <div className="text-sm text-black mt-1">
+                                •{row.sales_sub_category} • {row.sales_sub_size}
+                              </div>
+                            )}
+                          </TableCell>
 
-        <div className="flex flex-row items-center gap-2 justify-end">
-          <Button
-            type="submit"
-            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
-            disabled={createBranchMutation.isPending}
-          >
-            {createBranchMutation.isPending ? "Submitting..." : "Create Dispatch"}
-          </Button>
-          <Button
-            type="button" 
-            onClick={()=>{navigate('/dispatch')}} 
-            className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
-          >
-          Go Back
-          </Button>
+                          <TableCell className="px-4 py-2 min-w-28 ">
+                            <Input
+                              className="bg-white border border-gray-300"
+                              value={row.sales_sub_box}
+                              onChange={(e) =>
+                                handlePaymentChange(
+                                  e,
+                                  rowIndex,
+                                  "sales_sub_box"
+                                )
+                              }
+                              placeholder="Enter Box"
+                            />
+                            {row.sales_sub_item && (
+                              <div className="text-sm text-black mt-1">
+                                • {row.sales_sub_brand}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="p-2 border">
+                            <Button
+                              variant="ghost"
+                              onClick={() => removeRow(rowIndex)}
+                              disabled={invoiceData.length === 1}
+                              className="text-red-500 "
+                              type="button"
+                            >
+                              <MinusCircle className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex flex-row items-center gap-2 justify-end">
+              <Button
+                type="submit"
+                className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
+                disabled={createBranchMutation.isPending}
+              >
+                {createBranchMutation.isPending
+                  ? "Submitting..."
+                  : "Create Dispatch"}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  navigate("/dispatch");
+                }}
+                className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
+              >
+                Go Back
+              </Button>
+            </div>
+          </form>
         </div>
-      </form>
-      </div>
       </div>
     </Page>
   );

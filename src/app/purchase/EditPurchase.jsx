@@ -34,7 +34,13 @@ import BASE_URL from "@/config/BaseUrl";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MinusCircle, PlusCircle, SquarePlus, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  MinusCircle,
+  PlusCircle,
+  SquarePlus,
+  Trash2,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
@@ -56,7 +62,6 @@ const BranchHeader = () => {
   );
 };
 
-
 const EditPurchase = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -65,7 +70,7 @@ const EditPurchase = () => {
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
-  const userType = localStorage.getItem('userType');
+  const userType = localStorage.getItem("userType");
   const [formData, setFormData] = useState({
     purchase_date: "",
     purchase_buyer_name: "",
@@ -109,7 +114,6 @@ const EditPurchase = () => {
           variant: "destructive",
         });
       }
-
     },
     onError: (error) => {
       console.error("API Error:", error);
@@ -175,7 +179,7 @@ const EditPurchase = () => {
     refetch,
   } = useQuery({
     queryKey: ["purchaseByid", id],
-    queryFn: () => fetchPurchaseById(id)
+    queryFn: () => fetchPurchaseById(id),
   });
 
   useEffect(() => {
@@ -325,7 +329,7 @@ const EditPurchase = () => {
 
       if (!response.ok) throw new Error("Failed to delete Purchase Table");
 
-      return response.json(); // Ensure response is returned as JSON
+      return response.json();
     },
     onSuccess: (data) => {
       if (data.code === 200) {
@@ -457,7 +461,6 @@ const EditPurchase = () => {
   return (
     <Page>
       <div className="p-0 md:p-4">
-
         <div className="sm:hidden bg-gradient-to-b from-yellow-50 to-white min-h-screen">
           <form onSubmit={handleSubmit} className="flex flex-col h-full">
             {/* Premium Header Section */}
@@ -475,8 +478,12 @@ const EditPurchase = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </button>
                 <div className="flex flex-col">
-                  <h1 className="text-xl font-bold tracking-wide">Update Purchase</h1>
-                  <p className="text-xs text-yellow-100 mt-0.5 opacity-90">Modify existing purchase details</p>
+                  <h1 className="text-xl font-bold tracking-wide">
+                    Update Purchase
+                  </h1>
+                  <p className="text-xs text-yellow-100 mt-0.5 opacity-90">
+                    Modify existing purchase details
+                  </p>
                 </div>
               </div>
             </div>
@@ -514,7 +521,9 @@ const EditPurchase = () => {
                   </div>
                   <MemoizedSelect
                     value={formData.purchase_buyer_name}
-                    onChange={(e) => handleInputChange(e, "purchase_buyer_name")}
+                    onChange={(e) =>
+                      handleInputChange(e, "purchase_buyer_name")
+                    }
                     options={
                       buyerData?.buyers?.map((buyer) => ({
                         value: buyer.buyer_name,
@@ -546,6 +555,7 @@ const EditPurchase = () => {
                       Ref No<span className="text-red-500">*</span>
                     </label>
                     <Input
+                      disabled
                       className="bg-white border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-yellow-300 focus:border-yellow-400"
                       value={formData.purchase_ref_no}
                       onChange={(e) => handleInputChange(e, "purchase_ref_no")}
@@ -560,13 +570,15 @@ const EditPurchase = () => {
                     <Input
                       className="bg-white border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-yellow-300 focus:border-yellow-400"
                       value={formData.purchase_vehicle_no}
-                      onChange={(e) => handleInputChange(e, "purchase_vehicle_no")}
+                      onChange={(e) =>
+                        handleInputChange(e, "purchase_vehicle_no")
+                      }
                       placeholder="Vehicle No"
                     />
                   </div>
                 </div>
 
-                <div >
+                <div>
                   <label className="sm:block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     <span className="w-1 h-4 bg-gray-300 rounded-full mr-2"></span>
                     Remark
@@ -617,7 +629,9 @@ const EditPurchase = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <span className="w-1.5 h-5 bg-yellow-500 rounded-full mr-2"></span>
-                    <h2 className="text-base font-semibold text-gray-800">Items</h2>
+                    <h2 className="text-base font-semibold text-gray-800">
+                      Items
+                    </h2>
                     <button
                       type="button"
                       className="flex items-center text-xs text-yellow-600 font-medium bg-yellow-50 px-2 py-0.5 rounded-full"
@@ -626,7 +640,6 @@ const EditPurchase = () => {
                       <CreateItem />
                     </button>
                   </div>
-                 
                 </div>
 
                 {/*  Item Table */}
@@ -652,7 +665,11 @@ const EditPurchase = () => {
                             <MemoizedProductSelect
                               value={row.purchase_sub_item}
                               onChange={(e) =>
-                                handlePaymentChange(e, rowIndex, "purchase_sub_item")
+                                handlePaymentChange(
+                                  e,
+                                  rowIndex,
+                                  "purchase_sub_item"
+                                )
                               }
                               options={
                                 itemsData?.items?.map((product) => ({
@@ -665,35 +682,39 @@ const EditPurchase = () => {
                             />
                             {row.purchase_sub_item && (
                               <div className="text-xs text-gray-600 mt-1 flex items-center">
-                                <span className="bg-yellow-100 px-1.5 py-0.5 rounded text-yellow-800">{row.purchase_sub_category}</span>
+                                <span className="bg-yellow-100 px-1.5 py-0.5 rounded text-yellow-800">
+                                  {row.purchase_sub_category}
+                                </span>
                                 {/* <span className="mx-1">•</span> */}
                                 {/* <span>{row.purchase_sub_size}</span> */}
                               </div>
                             )}
 
                             {/* Action button moved to absolute position */}
-                            {row.id  ? (
-                               userType == 2 && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteRow(row.id)}
-                             
-                              className={`absolute top-2 right-2 rounded-full p-1  bg-red-200 text-red-500`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            {row.id ? (
+                              userType == 2 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteRow(row.id)}
+                                  className={`absolute top-2 right-2 rounded-full p-1  bg-red-200 text-red-500`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
                               )
- ) : (
-                            <button
-                              type="button"
-                              onClick={() => removeRow(rowIndex)}
-                              disabled={invoiceData.length === 1}
-                              className={`absolute top-2 right-2 rounded-full p-1 ${invoiceData.length === 1 ? 'bg-gray-200 text-gray-400' : 'bg-red-100 text-red-500'}`}
-                            >
-                              <MinusCircle className="h-4 w-4" />
-                            </button>
-       )}
-
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => removeRow(rowIndex)}
+                                disabled={invoiceData.length === 1}
+                                className={`absolute top-2 right-2 rounded-full p-1 ${
+                                  invoiceData.length === 1
+                                    ? "bg-gray-200 text-gray-400"
+                                    : "bg-red-100 text-red-500"
+                                }`}
+                              >
+                                <MinusCircle className="h-4 w-4" />
+                              </button>
+                            )}
                           </TableCell>
 
                           <TableCell className="px-3 py-2.5">
@@ -702,14 +723,20 @@ const EditPurchase = () => {
                               className="bg-white border border-gray-300 w-full text-xs"
                               value={row.purchase_sub_box}
                               onChange={(e) =>
-                                handlePaymentChange(e, rowIndex, "purchase_sub_box")
+                                handlePaymentChange(
+                                  e,
+                                  rowIndex,
+                                  "purchase_sub_box"
+                                )
                               }
                               placeholder="Qty"
                               type="number"
                             />
                             {row.purchase_sub_item && (
                               <div className="text-xs text-gray-600 mt-1">
-                                <span className="inline-block bg-gray-100 px-1.5 py-0.5 rounded">{row.purchase_sub_brand}</span>
+                                <span className="inline-block bg-gray-100 px-1.5 py-0.5 rounded">
+                                  {row.purchase_sub_brand}
+                                </span>
                               </div>
                             )}
                           </TableCell>
@@ -744,12 +771,10 @@ const EditPurchase = () => {
                 </Button>
               </div>
 
-
               <div className="h-4"></div>
             </div>
           </form>
         </div>
-
 
         <div className="hidden sm:block">
           <form onSubmit={handleSubmit} className="w-full ">
@@ -784,7 +809,9 @@ const EditPurchase = () => {
                     </label>
                     <MemoizedSelect
                       value={formData.purchase_buyer_name}
-                      onChange={(e) => handleInputChange(e, "purchase_buyer_name")}
+                      onChange={(e) =>
+                        handleInputChange(e, "purchase_buyer_name")
+                      }
                       options={
                         buyerData?.buyers?.map((buyer) => ({
                           value: buyer.buyer_name,
@@ -822,9 +849,12 @@ const EditPurchase = () => {
                         Ref No<span className="text-red-500">*</span>
                       </label>
                       <Input
+                        disabled
                         className="bg-white"
                         value={formData.purchase_ref_no}
-                        onChange={(e) => handleInputChange(e, "purchase_ref_no")}
+                        onChange={(e) =>
+                          handleInputChange(e, "purchase_ref_no")
+                        }
                         placeholder="Enter Ref No"
                       />
                     </div>
@@ -856,7 +886,9 @@ const EditPurchase = () => {
                       <Textarea
                         className="bg-white"
                         value={formData.purchase_remark}
-                        onChange={(e) => handleInputChange(e, "purchase_remark")}
+                        onChange={(e) =>
+                          handleInputChange(e, "purchase_remark")
+                        }
                         placeholder="Enter Remark"
                       />
                     </div>
@@ -958,7 +990,11 @@ const EditPurchase = () => {
                               className="bg-white border border-gray-300"
                               value={row.purchase_sub_box}
                               onChange={(e) =>
-                                handlePaymentChange(e, rowIndex, "purchase_sub_box")
+                                handlePaymentChange(
+                                  e,
+                                  rowIndex,
+                                  "purchase_sub_box"
+                                )
                               }
                               placeholder="Enter Box"
                               type="number"
@@ -972,16 +1008,16 @@ const EditPurchase = () => {
                           <TableCell className="p-2 border">
                             <TableCell className="p-2 ">
                               {row.id ? (
-                                  userType == 2 && (
-                                <Button
-                                  variant="ghost"
-                                  onClick={() => handleDeleteRow(row.id)}
-                                  className="text-red-500"
-                                  type="button"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                                  )
+                                userType == 2 && (
+                                  <Button
+                                    variant="ghost"
+                                    onClick={() => handleDeleteRow(row.id)}
+                                    className="text-red-500"
+                                    type="button"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )
                               ) : (
                                 <Button
                                   variant="ghost"
@@ -1007,7 +1043,9 @@ const EditPurchase = () => {
               <Button
                 type="submit"
                 className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
-                disabled={invoiceData.length < 1 || createBranchMutation.isPending}
+                disabled={
+                  invoiceData.length < 1 || createBranchMutation.isPending
+                }
               >
                 {createBranchMutation.isPending
                   ? "Submitting..."
@@ -1015,7 +1053,9 @@ const EditPurchase = () => {
               </Button>
               <Button
                 type="button"
-                onClick={() => { navigate('/purchase') }}
+                onClick={() => {
+                  navigate("/purchase");
+                }}
                 className={`${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor} flex items-center mt-2`}
               >
                 Go Back
