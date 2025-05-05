@@ -25,14 +25,18 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import axios from "axios";
 import {
-  ChevronDown,
-  Edit,
-  Search,
-  SquarePlus,
-  Trash2
-} from "lucide-react";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import axios from "axios";
+import { ChevronDown, Edit, Search, SquarePlus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -47,7 +51,7 @@ import {
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
 import StatusToggle from "@/components/toggle/StatusToggle";
-
+import { useToast } from "@/hooks/use-toast";
 
 const PurchaseList = () => {
   const {
@@ -65,15 +69,61 @@ const PurchaseList = () => {
       return response.data.purchase;
     },
   });
- 
+
   // State for table management
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState(null);
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
-
+  const { toast } = useToast();
+  const UserId = localStorage.getItem("userType");
   const navigate = useNavigate();
+  const handleDeleteRow = (productId) => {
+    setDeleteItemId(productId);
+    setDeleteConfirmOpen(true);
+  };
+  const confirmDelete = async () => {
+    try {
+      const response = await axios.delete(`/api/purchases/${deleteItemId}`);
+      const data = response.data;
+
+      if (data.code === 200) {
+        toast({
+          title: "Success",
+          description: data.msg,
+        });
+        refetch();
+      } else if (data.code === 400) {
+        toast({
+          title: "Duplicate Entry",
+          description: data.msg,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.msg || "Something went wrong.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Unexpected Error",
+        description:
+          error?.response?.data?.msg ||
+          error.message ||
+          "Something unexpected happened.",
+        variant: "destructive",
+      });
+      console.error("Failed to delete product:", error);
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeleteItemId(null);
+    }
+  };
 
   // Define columns for the table
   const columns = [
@@ -115,17 +165,16 @@ const PurchaseList = () => {
         const statusId = row.original.id;
         return (
           <StatusToggle
-          initialStatus={status}
-          teamId={statusId}
-          onStatusChange={() => {
-            refetch();
-          }}
-        />
+            initialStatus={status}
+            teamId={statusId}
+            onStatusChange={() => {
+              refetch();
+            }}
+          />
         );
       },
     },
-    
-  
+
     {
       id: "actions",
       header: "Action",
@@ -141,7 +190,7 @@ const PurchaseList = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => {
-                      navigateToPurchaseEdit(navigate, purchaseId)
+                      navigateToPurchaseEdit(navigate, purchaseId);
                     }}
                   >
                     <Edit />
@@ -151,17 +200,35 @@ const PurchaseList = () => {
                   <p>Edit Purchase</p>
                 </TooltipContent>
               </Tooltip>
-
-             
             </TooltipProvider>
+            {UserId != 1 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleDeleteRow(purchaseId)}
+                      className="text-red-500"
+                      type="button"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete Purchase</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         );
       },
     },
   ];
-  const filteredItems = purchase?.filter((item) =>
-    item.purchase_buyer_name.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const filteredItems =
+    purchase?.filter((item) =>
+      item.purchase_buyer_name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || [];
 
   // Create the table instance
   const table = useReactTable({
@@ -273,34 +340,41 @@ const PurchaseList = () => {
                       </div>
                       <div className="flex items-center justify-between gap-2 ">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${item.purchase_status === "Active"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                            }`}
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            item.purchase_status === "Active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
                         >
                           <StatusToggle
-          initialStatus={item.purchase_status}
-          teamId={item.id}
-          onStatusChange={() => {
-            refetch();
-          }}
-        />
+                            initialStatus={item.purchase_status}
+                            teamId={item.id}
+                            onStatusChange={() => {
+                              refetch();
+                            }}
+                          />
                         </span>
-                      
                         <button
                           variant="ghost"
                           className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
                           onClick={() => {
-                            navigateToPurchaseEdit(navigate, item.id)
+                            navigateToPurchaseEdit(navigate, item.id);
                           }}
                         >
-                        <Edit className="w-4 h-4" />
+                          <Edit className="w-4 h-4" />
                         </button>
+                        {UserId != 1 && (
+                          <button
+                            variant="ghost"
+                            // className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
+                            onClick={() => handleDeleteRow(item.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        )}
                         {/* <EditItem ItemId={} /> */}
-                      
                       </div>
                     </div>
-
 
                     <div className="flex flex-wrap justify-between gap-1">
                       {item.purchase_ref_no && (
@@ -319,7 +393,10 @@ const PurchaseList = () => {
                           >
                             <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
                           </svg>
-                          <span className="text-xs text-gray-700"><span className="text-[10px]">Ref No:</span>{item.purchase_ref_no}</span>
+                          <span className="text-xs text-gray-700">
+                            <span className="text-[10px]">Ref No:</span>
+                            {item.purchase_ref_no}
+                          </span>
                         </div>
                       )}
                       {item.purchase_vehicle_no && (
@@ -341,12 +418,13 @@ const PurchaseList = () => {
                             <path d="M13 17v2" />
                             <path d="M13 11v2" />
                           </svg>
-                          <span className="text-xs text-gray-700"><span className="text-[10px]">Vehicle No:</span>{item.purchase_vehicle_no}</span>
+                          <span className="text-xs text-gray-700">
+                            <span className="text-[10px]">Vehicle No:</span>
+                            {item.purchase_vehicle_no}
+                          </span>
                         </div>
                       )}
                       {item.purchase_date && (
-
-
                         <div className="inline-flex items-center bg-gray-100 rounded-full px-2 py-1">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -360,7 +438,14 @@ const PurchaseList = () => {
                             strokeLinejoin="round"
                             className="text-gray-600 mr-1"
                           >
-                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                            <rect
+                              width="18"
+                              height="18"
+                              x="3"
+                              y="4"
+                              rx="2"
+                              ry="2"
+                            />
                             <line x1="16" y1="2" x2="16" y2="6" />
                             <line x1="8" y1="2" x2="8" y2="6" />
                             <line x1="3" y1="10" x2="21" y2="10" />
@@ -371,8 +456,6 @@ const PurchaseList = () => {
                         </div>
                       )}
                     </div>
-
-
                   </div>
                 </div>
               ))
@@ -453,9 +536,9 @@ const PurchaseList = () => {
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
                         </TableHead>
                       );
                     })}
@@ -519,7 +602,26 @@ const PurchaseList = () => {
           </div>
         </div>
       </div>
-     
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              purchase.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className={`${ButtonConfig.backgroundColor}  ${ButtonConfig.textColor} text-black hover:bg-red-600`}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Page>
   );
 };
