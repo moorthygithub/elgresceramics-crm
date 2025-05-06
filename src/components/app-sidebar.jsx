@@ -111,22 +111,22 @@ export function AppSidebar({ ...props }) {
             title: "Stock",
             url: "/report/stock",
           },
-          {
-            title: "Buyer",
-            url: "/report/buyer",
-          },
+          // {
+          //   title: "Buyer",
+          //   url: "/report/buyer",
+          // },
           {
             title: "Single Item Stock",
             url: "/report/single-item-stock",
           },
-          {
-            title: "Purchase",
-            url: "/report/purchase",
-          },
-          {
-            title: "Dispatch",
-            url: "/report/dispatch",
-          },
+          // {
+          //   title: "Purchase",
+          //   url: "/report/purchase",
+          // },
+          // {
+          //   title: "Dispatch",
+          //   url: "/report/dispatch",
+          // },
         ],
       },
     ],

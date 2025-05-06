@@ -22,7 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   flexRender,
   getCoreRowModel,
@@ -43,7 +43,12 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { navigateTOSalesEdit, navigateTOSalesView, SALES_LIST } from "@/api";
+import {
+  fetchSalesById,
+  navigateTOSalesEdit,
+  navigateTOSalesView,
+  SALES_LIST,
+} from "@/api";
 import Loader from "@/components/loader/Loader";
 import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
@@ -59,6 +64,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import BASE_URL from "@/config/BaseUrl";
+import { RiWhatsappFill } from "react-icons/ri";
+import { encryptId } from "@/components/common/Encryption";
 // import CreateItem from "./CreateItem";
 // import EditItem from "./EditItem";
 
@@ -90,6 +98,7 @@ const SalesList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const UserId = localStorage.getItem("userType");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleDeleteRow = (productId) => {
     setDeleteItemId(productId);
@@ -97,7 +106,9 @@ const SalesList = () => {
   };
   const confirmDelete = async () => {
     try {
-      const response = await axios.delete(`/api/sales/${deleteItemId}`);
+      const response = await axios.delete(
+        `${BASE_URL}/api/sales/${deleteItemId}`
+      );
       const data = response.data;
 
       if (data.code === 200) {
@@ -134,7 +145,72 @@ const SalesList = () => {
       setDeleteItemId(null);
     }
   };
-  // Define columns for the table
+  const handleFetchSalesById = async (salesId) => {
+    try {
+      const data = await queryClient.fetchQuery({
+        queryKey: ["salesByid", salesId],
+        queryFn: () => fetchSalesById(salesId),
+      });
+
+      if (data?.sales && data?.salesSub) {
+        handleSendWhatsApp(data.sales, data.salesSub);
+      } else {
+        console.error("Incomplete data received");
+      }
+    } catch (error) {
+      console.error("Failed to fetch purchase data or send WhatsApp:", error);
+    }
+  };
+  const handleSendWhatsApp = (sales, salesSub) => {
+    const {
+      sales_no,
+      sales_date,
+      sales_buyer_name,
+      sales_buyer_city,
+      sales_vehicle_no,
+    } = sales;
+
+    const itemLine = salesSub.map((item) => {
+      const size = item.sales_sub_size.padEnd(10, " ");
+      const box = item.sales_sub_box.toString().padStart(4, " ");
+      return `${size} ${box}`;
+    });
+
+    const itemLines = salesSub.map((item) => {
+      const name = item.sales_sub_item.padEnd(25, " ");
+      const qty = `(${item.sales_sub_category.replace(/\D/g, "")})`.padStart(
+        6,
+        " "
+      );
+      return `${name}${qty}`;
+    });
+
+    const totalQty = salesSub.reduce((sum, item) => {
+      const qty = parseInt(item.sales_sub_category.replace(/\D/g, ""), 10) || 0;
+      return sum + qty;
+    }, 0);
+
+    const message = `=== DispatchList ===
+  No.        : ${sales_no}
+  Date       : ${moment(sales_date).format("DD-MM-YYYY")}
+  Party      : ${sales_buyer_name}
+  City       : ${sales_buyer_city}
+  VEHICLE NO : ${sales_vehicle_no}
+  ===============================
+  Product    [SIZE]   (QTY)
+  ===============================
+${itemLine.map((line) => "  " + line).join("\n")}
+  ===============================
+${itemLines.map((line) => "  " + line).join("\n")}
+  ===============================
+  Total QTY: ${totalQty}
+  ===============================`;
+
+    const phoneNumber = "918867171060";
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    window.open(whatsappUrl, "_blank");
+  };
   const columns = [
     {
       accessorKey: "index",
@@ -247,6 +323,23 @@ const SalesList = () => {
                 </Tooltip>
               </TooltipProvider>
             )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleFetchSalesById(encryptId(salesId))}
+                    className="text-green-500"
+                    type="button"
+                  >
+                    <RiWhatsappFill className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Whatsapp Dispatch</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         );
       },

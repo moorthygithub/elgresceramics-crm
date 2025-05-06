@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   flexRender,
   getCoreRowModel,
@@ -40,7 +40,11 @@ import { ChevronDown, Edit, Search, SquarePlus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { navigateToPurchaseEdit, PURCHASE_LIST } from "@/api";
+import {
+  fetchPurchaseById,
+  navigateToPurchaseEdit,
+  PURCHASE_LIST,
+} from "@/api";
 import Loader from "@/components/loader/Loader";
 import {
   Tooltip,
@@ -52,6 +56,9 @@ import { ButtonConfig } from "@/config/ButtonConfig";
 import moment from "moment";
 import StatusToggle from "@/components/toggle/StatusToggle";
 import { useToast } from "@/hooks/use-toast";
+import BASE_URL from "@/config/BaseUrl";
+import { RiWhatsappFill } from "react-icons/ri";
+import { encryptId } from "@/components/common/Encryption";
 
 const PurchaseList = () => {
   const {
@@ -80,6 +87,8 @@ const PurchaseList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const UserId = localStorage.getItem("userType");
+  const queryClient = useQueryClient();
+
   const navigate = useNavigate();
   const handleDeleteRow = (productId) => {
     setDeleteItemId(productId);
@@ -87,7 +96,9 @@ const PurchaseList = () => {
   };
   const confirmDelete = async () => {
     try {
-      const response = await axios.delete(`/api/purchases/${deleteItemId}`);
+      const response = await axios.delete(
+        `${BASE_URL}/api/purchases/${deleteItemId}`
+      );
       const data = response.data;
 
       if (data.code === 200) {
@@ -125,7 +136,76 @@ const PurchaseList = () => {
     }
   };
 
-  // Define columns for the table
+  const handleFetchPurchaseById = async (purchaseId) => {
+    try {
+      const data = await queryClient.fetchQuery({
+        queryKey: ["purchaseByid", purchaseId],
+        queryFn: () => fetchPurchaseById(purchaseId),
+      });
+
+      console.log("Purchase Data:", data);
+
+      if (data?.purchase && data?.purchaseSub) {
+        handleSendWhatsApp(data.purchase, data.purchaseSub);
+      } else {
+        console.error("Incomplete data received");
+      }
+    } catch (error) {
+      console.error("Failed to fetch purchase data or send WhatsApp:", error);
+    }
+  };
+  const handleSendWhatsApp = (purchase, purchaseSub) => {
+    const {
+      purchase_no,
+      purchase_date,
+      purchase_buyer_name,
+      purchase_buyer_city,
+      purchase_vehicle_no,
+    } = purchase;
+
+    const itemLine = purchaseSub.map((item) => {
+      const size = item.purchase_sub_size.padEnd(10, " ");
+      const box = item.purchase_sub_box.toString().padStart(4, " ");
+      return `${size} ${box}`;
+    });
+
+    const itemLines = purchaseSub.map((item) => {
+      const name = item.purchase_sub_item.padEnd(25, " ");
+      const qty = `(${item.purchase_sub_category.replace(/\D/g, "")})`.padStart(
+        6,
+        " "
+      );
+      return `${name}${qty}`;
+    });
+
+    const totalQty = purchaseSub.reduce((sum, item) => {
+      const qty =
+        parseInt(item.purchase_sub_category.replace(/\D/g, ""), 10) || 0;
+      return sum + qty;
+    }, 0);
+
+    const message = `=== PackList ===
+  No.        : ${purchase_no}
+  Date       : ${moment(purchase_date).format("DD-MM-YYYY")}
+  Party      : ${purchase_buyer_name}
+  City       : ${purchase_buyer_city}
+  VEHICLE NO : ${purchase_vehicle_no}
+  ===============================
+  Product    [SIZE]   (QTY)
+  ===============================
+${itemLine.map((line) => "  " + line).join("\n")}
+  ===============================
+${itemLines.map((line) => "  " + line).join("\n")}
+  ===============================
+  Total QTY: ${totalQty}
+  ===============================`;
+
+    const phoneNumber = "919360485526";
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
   const columns = [
     {
       accessorKey: "index",
@@ -180,7 +260,6 @@ const PurchaseList = () => {
       header: "Action",
       cell: ({ row }) => {
         const purchaseId = row.original.id;
-
         return (
           <div className="flex flex-row">
             <TooltipProvider>
@@ -220,6 +299,25 @@ const PurchaseList = () => {
                 </Tooltip>
               </TooltipProvider>
             )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      handleFetchPurchaseById(encryptId(purchaseId))
+                    }
+                    className="text-green-500"
+                    type="button"
+                  >
+                    <RiWhatsappFill className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Whatsapp Purchase</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         );
       },
