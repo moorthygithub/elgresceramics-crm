@@ -141,7 +141,29 @@ const StockView = () => {
       ];
       worksheet.addRow(row);
     });
+    const totalAvailable = filteredItems.reduce(
+      (total, item) =>
+        total + (item.openpurch - item.closesale + (item.purch - item.sale)),
+      0
+    );
 
+    // Add total row
+    const totalRow = worksheet.addRow([
+      "",
+      "",
+      "Total Available:",
+      totalAvailable,
+    ]);
+    totalRow.eachCell((cell, colNumber) => {
+      if (colNumber >= 3) {
+        cell.font = { bold: true };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "D9EAD3" }, 
+        };
+      }
+    });
     // Generate and download Excel file
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
@@ -222,46 +244,46 @@ const StockView = () => {
                   className="pl-8 bg-gray-50 border-gray-200 focus:border-gray-300 focus:ring-gray-200 w-full text-sm"
                 />
               </div>
-                              <DropdownMenu>
-               <DropdownMenuTrigger asChild>
-                 <Button variant="outline" className=" w-32 truncate">
-                   <span className="truncate">{selectedCategory}</span>
-                   <ChevronDown className="ml-2 h-4 w-4 flex-shrink-0" />
-                 </Button>
-               </DropdownMenuTrigger>
-               <DropdownMenuContent 
-                 className="max-h-60 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
-                 align="start"
-                 sideOffset={5}
-                 collisionPadding={10}
-               >
-                 {categories.map((category) => (
-                   <DropdownMenuItem
-                     key={category}
-                     onSelect={() => setSelectedCategory(category)}
-                     className="flex items-center justify-between"
-                   >
-                     <span className="truncate">{category}</span>
-                     {selectedCategory === category && (
-                       <svg
-                         xmlns="http://www.w3.org/2000/svg"
-                         width="16"
-                         height="16"
-                         viewBox="0 0 24 24"
-                         fill="none"
-                         stroke="currentColor"
-                         strokeWidth="2"
-                         strokeLinecap="round"
-                         strokeLinejoin="round"
-                         className="flex-shrink-0 ml-2"
-                       >
-                         <polyline points="20 6 9 17 4 12" />
-                       </svg>
-                     )}
-                   </DropdownMenuItem>
-                 ))}
-               </DropdownMenuContent>
-             </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className=" w-32 truncate">
+                    <span className="truncate">{selectedCategory}</span>
+                    <ChevronDown className="ml-2 h-4 w-4 flex-shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="max-h-60 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
+                  align="start"
+                  sideOffset={5}
+                  collisionPadding={10}
+                >
+                  {categories.map((category) => (
+                    <DropdownMenuItem
+                      key={category}
+                      onSelect={() => setSelectedCategory(category)}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="truncate">{category}</span>
+                      {selectedCategory === category && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="flex-shrink-0 ml-2"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <div className="text-sm text-gray-600">
                 {filteredItems.length} items
               </div>
@@ -296,6 +318,9 @@ const StockView = () => {
                       Category
                     </th>
                     <th className="border border-black px-2 py-2 text-center">
+                      Brand
+                    </th>
+                    <th className="border border-black px-2 py-2 text-center">
                       Size
                     </th>
                     <th className="border border-black px-2 py-2 text-center">
@@ -317,6 +342,9 @@ const StockView = () => {
                           {item.item_category}
                         </td>
                         <td className="border border-black px-2 py-2 text-right">
+                          {item.item_brand}
+                        </td>
+                        <td className="border border-black px-2 py-2 text-right">
                           {item.item_size}
                         </td>
                         <td className="border border-black px-2 py-2 text-right">
@@ -328,6 +356,26 @@ const StockView = () => {
                         </td>
                       </tr>
                     ))}
+                    <tr className="font-bold">
+                      <td
+                        colSpan="4"
+                        className="border border-black px-2 py-2 text-right"
+                      >
+                        Total:
+                      </td>
+                      <td className="border border-black px-2 py-2 text-right">
+                        {filteredItems
+                          .reduce((total, item) => {
+                            return (
+                              total +
+                              (item.openpurch -
+                                item.closesale +
+                                (item.purch - item.sale))
+                            );
+                          }, 0)
+                          .toLocaleString()}
+                      </td>
+                    </tr>
                   </tbody>
                 )}
               </table>

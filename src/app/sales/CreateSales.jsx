@@ -91,6 +91,7 @@ const CreateSales = () => {
   const navigate = useNavigate();
   const boxInputRefs = useRef([]);
   const today = moment().format("YYYY-MM-DD");
+  const [availablebox, setAvailableBox] = useState("");
 
   const [formData, setFormData] = useState({
     sales_date: today,
@@ -220,10 +221,15 @@ const CreateSales = () => {
         updatedData[rowIndex]["sales_sub_size"] = selectedItem.item_size;
         updatedData[rowIndex]["sales_sub_brand"] = selectedItem.item_brand;
         updatedData[rowIndex]["sales_sub_weight"] = selectedItem.item_weight;
-        updatedData[rowIndex]["sales_sub_box"] =
+        // updatedData[rowIndex]["sales_sub_box"] =
+        //   selectedItem.openpurch -
+        //   selectedItem.closesale +
+        //   (selectedItem.purch - selectedItem.sale);
+        setAvailableBox(
           selectedItem.openpurch -
-          selectedItem.closesale +
-          (selectedItem.purch - selectedItem.sale);
+            selectedItem.closesale +
+            (selectedItem.purch - selectedItem.sale)
+        );
       }
       focusBoxInput(rowIndex);
       setInvoiceData(updatedData);
@@ -593,6 +599,8 @@ const CreateSales = () => {
                 <div className="mt-2 text-xs text-gray-500 flex items-center">
                   <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full mr-1"></span>
                   Total Items: {invoiceData.length}
+                  <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full mx-1 "></span>
+                  Avaiable Box: {availablebox}
                 </div>
               </div>
 
@@ -817,7 +825,8 @@ const CreateSales = () => {
                             />
                             {row.sales_sub_item && (
                               <div className="text-sm text-black mt-1">
-                                • {row.sales_sub_brand}
+                                • {row.sales_sub_brand}• Available Box{" "}
+                                {availablebox}
                               </div>
                             )}
                           </TableCell>
