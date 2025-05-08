@@ -192,7 +192,7 @@ const DispatchReport = () => {
               <table className="w-full border-collapse border border-gray-300 text-[11px]">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="border border-gray-300 px-2 py-2 text-center md:w-20">
+                    <th className="border border-gray-300 px-2 py-2 text-center">
                       Ref No
                     </th>
                     <th className="border border-gray-300 px-2 py-2 text-left">
@@ -214,7 +214,7 @@ const DispatchReport = () => {
                   {/* Transactions */}
                   {reportData?.sales?.map((transaction, index) => (
                     <tr key={index}>
-                      <td className="border border-gray-300 px-2 py-1 text-right border-l border-r">
+                      <td className="border border-gray-300 px-2 py-1 text-center border-l border-r">
                         {transaction?.sales_ref_no}
                       </td>
                       <td className="border border-gray-300 px-2 py-1 font-medium">
@@ -421,35 +421,6 @@ const DispatchReport = () => {
                       </Button>
                     </div>
                   </div>
-
-                  {/* Buttons - Fixed width to prevent jumping */}
-                  {/* <div className="flex gap-2  ">
-                    <Button
-                      type="submit"
-                      size="sm"
-                      className={`h-8 w-24 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-                    >
-                      <Search className="h-3 w-3 mr-1" /> Search
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-8 w-24"
-                      onClick={handlePrintPdf}
-                    >
-                      <Printer className="h-3 w-3 mr-1" /> Print
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-8 w-24"
-                      onClick={downloadExcel}
-                    >
-                      <RiFileExcel2Line className="h-3 w-3 mr-1" /> Excel
-                    </Button>
-                  </div> */}
                 </div>
               </form>
             </div>

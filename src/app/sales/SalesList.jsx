@@ -163,7 +163,7 @@ const SalesList = () => {
   };
   const handleSendWhatsApp = (sales, salesSub) => {
     const {
-      sales_no,
+      sales_ref_no,
       sales_date,
       sales_buyer_name,
       sales_buyer_city,
@@ -191,7 +191,7 @@ const SalesList = () => {
     }, 0);
 
     const message = `=== DispatchList ===
-  No.        : ${sales_no}
+  No.        : ${sales_ref_no}
   Date       : ${moment(sales_date).format("DD-MM-YYYY")}
   Party      : ${sales_buyer_name}
   City       : ${sales_buyer_city}
@@ -206,7 +206,7 @@ ${itemLines.map((line) => "  " + line).join("\n")}
   Total QTY: ${totalQty}
   ===============================`;
 
-    const phoneNumber = "918867171060";
+    const phoneNumber = "919680053300";
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     window.open(whatsappUrl, "_blank");

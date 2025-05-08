@@ -32,7 +32,7 @@ import { NavMainUser } from "./nav-main-user";
 export function AppSidebar({ ...props }) {
   const nameL = localStorage.getItem("name");
   const emailL = localStorage.getItem("email");
-
+  const id = localStorage.getItem("userType");
   const initialData = {
     user: {
       name: `${nameL}`,
@@ -63,26 +63,30 @@ export function AppSidebar({ ...props }) {
         icon: Frame,
         isActive: false,
       },
-      {
-        title: "Master",
-        url: "#",
-        isActive: false,
-        icon: Settings2,
-        items: [
-          {
-            title: "Category",
-            url: "/master/category",
-          },
-          {
-            title: "Item",
-            url: "/master/item",
-          },
-          {
-            title: "Buyer",
-            url: "/master/buyer",
-          },
-        ],
-      },
+      ...(id != 1
+        ? [
+            {
+              title: "Master",
+              url: "#",
+              isActive: false,
+              icon: Settings2,
+              items: [
+                {
+                  title: "Category",
+                  url: "/master/category",
+                },
+                {
+                  title: "Item",
+                  url: "/master/item",
+                },
+                {
+                  title: "Buyer",
+                  url: "/master/buyer",
+                },
+              ],
+            },
+          ]
+        : []),
       {
         title: "Purchase",
         url: "/purchase",
@@ -106,15 +110,20 @@ export function AppSidebar({ ...props }) {
         url: "#",
         isActive: false,
         icon: File,
+
         items: [
           {
             title: "Stock",
             url: "/report/stock",
           },
-          // {
-          //   title: "Buyer",
-          //   url: "/report/buyer",
-          // },
+          ...(id != 1
+            ? [
+                {
+                  title: "Buyer",
+                  url: "/report/buyer",
+                },
+              ]
+            : []),
           {
             title: "Single Item Stock",
             url: "/report/single-item-stock",
@@ -127,6 +136,14 @@ export function AppSidebar({ ...props }) {
           //   title: "Dispatch",
           //   url: "/report/dispatch",
           // },
+          ...(id != 1
+            ? [
+                {
+                  title: "Dispatch",
+                  url: "/report/dispatch",
+                },
+              ]
+            : []),
         ],
       },
     ],
