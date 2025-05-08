@@ -156,7 +156,7 @@ const PurchaseList = () => {
   };
   const handleSendWhatsApp = (purchase, purchaseSub) => {
     const {
-      purchase_no,
+      purchase_ref_no,
       purchase_date,
       purchase_buyer_name,
       purchase_buyer_city,
@@ -185,7 +185,7 @@ const PurchaseList = () => {
     }, 0);
 
     const message = `=== PackList ===
-  No.        : ${purchase_no}
+  No.        : ${purchase_ref_no}
   Date       : ${moment(purchase_date).format("DD-MM-YYYY")}
   Party      : ${purchase_buyer_name}
   City       : ${purchase_buyer_city}
@@ -200,10 +200,12 @@ ${itemLines.map((line) => "  " + line).join("\n")}
   Total QTY: ${totalQty}
   ===============================`;
 
-    const phoneNumber = "919360485526";
+    const phoneNumber = "919680053300";
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     window.open(whatsappUrl, "_blank");
+    // const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+    // window.open(whatsappUrl, "_blank");
   };
 
   const columns = [

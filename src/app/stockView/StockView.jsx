@@ -25,6 +25,8 @@ const StockView = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [categories, setCategories] = useState(["All Categories"]);
+  const [brands, setBrands] = useState(["All Brands"]);
+  const [selectedBrands, setSelectedBrands] = useState("All Brands");
 
   const fetchStockData = async () => {
     const token = localStorage.getItem("token");
@@ -53,12 +55,15 @@ const StockView = () => {
     queryFn: fetchStockData,
   });
 
-  // Extract unique categories from stock data
   useEffect(() => {
     if (stockData && stockData.length > 0) {
       const uniqueCategories = [
         ...new Set(stockData.map((item) => item.item_category)),
       ];
+      const uniqueBrands = [
+        ...new Set(stockData.map((item) => item.item_brand)),
+      ];
+      setBrands(["All Brands", ...uniqueBrands]);
       setCategories(["All Categories", ...uniqueCategories]);
     }
   }, [stockData]);
@@ -75,12 +80,13 @@ const StockView = () => {
           .toLowerCase()
           .includes(searchLower);
 
-      // Filter by selected category
       const matchesCategory =
         selectedCategory === "All Categories" ||
         item.item_category === selectedCategory;
+      const matchesBrand =
+        selectedBrands === "All Brands" || item.item_brand === selectedBrands;
 
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesCategory && matchesBrand;
     }) || [];
 
   const handlePrintPdf = useReactToPrint({
@@ -160,7 +166,7 @@ const StockView = () => {
         cell.fill = {
           type: "pattern",
           pattern: "solid",
-          fgColor: { argb: "D9EAD3" }, 
+          fgColor: { argb: "D9EAD3" },
         };
       }
     });
@@ -265,6 +271,47 @@ const StockView = () => {
                     >
                       <span className="truncate">{category}</span>
                       {selectedCategory === category && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="flex-shrink-0 ml-2"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className=" w-32 truncate">
+                    <span className="truncate">{selectedBrands}</span>
+                    <ChevronDown className="ml-2 h-4 w-4 flex-shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  className="max-h-60 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
+                  align="start"
+                  sideOffset={5}
+                  collisionPadding={10}
+                >
+                  {brands.map((brands) => (
+                    <DropdownMenuItem
+                      key={brands}
+                      onSelect={() => setSelectedBrands(brands)}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="truncate">{brands}</span>
+                      {selectedCategory === brands && (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="16"
