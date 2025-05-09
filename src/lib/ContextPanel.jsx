@@ -14,14 +14,14 @@ const AppProvider = ({ children }) => {
         const response = await fetch(`${BASE_URL}/api/panelCheck`);
         const data = await response.json();
 
-        if (data.success === "ok") {
-          setStatusCheck("ok");
+        if (data.msg === "success") {
+          setStatusCheck("success");
         } else {
           navigate("/maintenance");
         }
       } catch (error) {
         console.error("Error fetching panel status:", error);
-        navigate("/maintenance"); 
+        navigate("/maintenance");
       }
     };
 
@@ -34,7 +34,7 @@ const AppProvider = ({ children }) => {
 
   return (
     <ContextPanel.Provider value={{ statusCheck }}>
-      {statusCheck === "ok" ? children : null}
+      {statusCheck === "success" ? children : null}
     </ContextPanel.Provider>
   );
 };

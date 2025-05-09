@@ -200,11 +200,11 @@ const EditPurchase = () => {
           const mappedData = purchaseByid.purchaseSub.map((sub, index) => {
             return {
               id: sub.id || "",
-              purchase_sub_category: sub.purchase_sub_category || "",
-              purchase_sub_item: sub.purchase_sub_item || "",
-              purchase_sub_size: sub.purchase_sub_size || "",
-              purchase_sub_brand: sub.purchase_sub_brand || "",
-              purchase_sub_weight: sub.purchase_sub_weight || 1,
+              purchase_sub_category: sub.item_category || "",
+              purchase_sub_item: sub.item_name || "",
+              purchase_sub_size: sub.item_size || "",
+              purchase_sub_brand: sub.item_brand || "",
+              purchase_sub_weight: sub.item_weight || 1,
               purchase_sub_box: sub.purchase_sub_box || 0,
             };
           });
@@ -391,7 +391,13 @@ const EditPurchase = () => {
         missingFields.push(`Row ${index + 1}: Brand`);
       if (!row.purchase_sub_weight)
         missingFields.push(`Row ${index + 1}: Weight`);
-      if (!row.purchase_sub_box) missingFields.push(`Row ${index + 1}: Box`);
+      if (
+        row.purchase_sub_box === null ||
+        row.purchase_sub_box === undefined ||
+        row.purchase_sub_box === ""
+      ) {
+        missingFields.push(`Row ${index + 1}: Box`);
+      }
     });
 
     if (missingFields.length > 0) {
@@ -591,37 +597,6 @@ const EditPurchase = () => {
                     rows={2}
                   />
                 </div>
-                {/* <div className="mb-2 mt-2">
-                  <label className="sm:block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    <span className={`w-1 h-4 ${formData.purchase_status == "Active" ? "bg-green-500" :"bg-gray-500"} rounded-full mr-2`}></span>
-                    Status<span className="text-red-500">*</span>
-                  </label>
-                 
-                   <Select
-                      value={formData.purchase_status}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({ ...prev, purchase_status: value }))
-                      }
-                    >
-                      <SelectTrigger className="bg-white border border-gray-300 rounded-lg">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border border-gray-200 shadow-lg">
-                        <SelectItem value="Active">
-                          <div className="flex items-center">
-                            <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-                            Active
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="Inactive">
-                          <div className="flex items-center">
-                            <div className="w-2 h-2 rounded-full bg-gray-400 mr-2" />
-                            Inactive
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                </div> */}
               </div>
 
               {/* Items Section  Table */}

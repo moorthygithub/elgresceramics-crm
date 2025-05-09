@@ -53,6 +53,7 @@ import CreateBuyer from "../master/buyer/CreateBuyer";
 import SalesTable from "./SalesTable";
 import CreateItem from "../master/item/CreateItem";
 import { MemoizedProductSelect } from "@/components/common/MemoizedProductSelect";
+import { encryptId } from "@/components/common/Encryption";
 // Validation Schema
 
 const BranchHeader = () => {
@@ -160,11 +161,11 @@ const EditSales = () => {
           const mappedData = SalesId.salesSub.map((sub, index) => {
             return {
               id: sub.id || "",
-              sales_sub_category: sub.sales_sub_category || "",
-              sales_sub_item: sub.sales_sub_item || "",
-              sales_sub_size: sub.sales_sub_size || "",
-              sales_sub_brand: sub.sales_sub_brand || "",
-              sales_sub_weight: sub.sales_sub_weight || "",
+              sales_sub_category: sub.item_category || "",
+              sales_sub_item: sub.item_name || "",
+              sales_sub_size: sub.item_size || "",
+              sales_sub_brand: sub.item_brand || "",
+              sales_sub_weight: sub.item_weight || "",
               sales_sub_box: sub.sales_sub_box || 0,
             };
           });
@@ -350,7 +351,13 @@ const EditSales = () => {
       if (!row.sales_sub_size) missingFields.push(`Row ${index + 1}: Size`);
       if (!row.sales_sub_brand) missingFields.push(`Row ${index + 1}: Brand`);
       if (!row.sales_sub_weight) missingFields.push(`Row ${index + 1}: Weight`);
-      if (!row.sales_sub_box) missingFields.push(`Row ${index + 1}: Box`);
+      if (
+        row.sales_sub_box === null ||
+        row.sales_sub_box === undefined ||
+        row.sales_sub_box === ""
+      ) {
+        missingFields.push(`Row ${index + 1}: Box`);
+      }
     });
 
     if (missingFields.length > 0) {

@@ -16,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import BASE_URL from "@/config/BaseUrl";
 import { useQuery } from "@tanstack/react-query";
 import {
   flexRender,
@@ -27,16 +26,16 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import axios from "axios";
-import { ArrowUpDown, ChevronDown, Loader2, Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { ButtonConfig } from "@/config/ButtonConfig";
-import CreateItem from "./CreateItem";
-import EditItem from "./EditItem";
 import { ITEM_LIST } from "@/api";
 import Loader from "@/components/loader/Loader";
 import { Separator } from "@/components/ui/separator";
+import { ButtonConfig } from "@/config/ButtonConfig";
+import CreateItem from "./CreateItem";
+import EditItem from "./EditItem";
 
 const ItemList = () => {
   const {
@@ -56,6 +55,7 @@ const ItemList = () => {
   });
 
   // State for table management
+  const UserId = localStorage.getItem("userType");
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
@@ -70,19 +70,6 @@ const ItemList = () => {
       header: "Sl No",
       cell: ({ row }) => <div>{row.index + 1}</div>,
     },
-    // {
-    //   accessorKey: "item_category",
-    //   header: ({ column }) => (
-    //     <Button
-    //       variant="ghost"
-    //       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    //     >
-    //       Category
-    //       <ArrowUpDown className="ml-2 h-4 w-4" />
-    //     </Button>
-    //   ),
-    //   cell: ({ row }) => <div>{row.getValue("item_category")}</div>,
-    // },
     {
       accessorKey: "item_category",
       header: "Category",
@@ -108,7 +95,15 @@ const ItemList = () => {
       header: "Weight",
       cell: ({ row }) => <div>{row.getValue("item_weight")}</div>,
     },
-
+    ...(UserId == 3
+      ? [
+          {
+            accessorKey: "branch_name",
+            header: "Branch Name",
+            cell: ({ row }) => <div>{row.getValue("branch_name")}</div>,
+          },
+        ]
+      : []),
     {
       accessorKey: "item_status",
       header: "Status",
@@ -117,36 +112,40 @@ const ItemList = () => {
 
         return (
           <span
-            className={`px-2 py-1 rounded text-xs ${status == "Active"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-              }`}
+            className={`px-2 py-1 rounded text-xs ${
+              status == "Active"
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
           >
             {status}
           </span>
         );
       },
     },
-    {
-      id: "actions",
-      header: "Action",
-      cell: ({ row }) => {
-        const ItemId = row.original.id;
+    ...(UserId != 3
+      ? [
+          {
+            id: "actions",
+            header: "Action",
+            cell: ({ row }) => {
+              const ItemId = row.original.id;
 
-        return (
-          <div className="flex flex-row">
-            <EditItem ItemId={ItemId} />
-          </div>
-        );
-      },
-    },
+              return (
+                <div className="flex flex-row">
+                  <EditItem ItemId={ItemId} />
+                </div>
+              );
+            },
+          },
+        ]
+      : []),
   ];
 
-
-  const filteredItems = item?.filter((item) =>
-    item.item_name.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
-
+  const filteredItems =
+    item?.filter((item) =>
+      item.item_name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || [];
 
   // Create the table instance
   const table = useReactTable({
@@ -207,15 +206,16 @@ const ItemList = () => {
   return (
     <Page>
       <div className="w-full p-0 md:p-4 grid grid-cols-1">
-
         <div className="sm:hidden">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl md:text-2xl text-gray-800 font-medium">
               Item List
             </h1>
-            <div>
-              <CreateItem />
-            </div>
+            {UserId != 3 && (
+              <div>
+                <CreateItem />
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col md:flex-row md:items-center py-4 gap-2">
@@ -251,19 +251,19 @@ const ItemList = () => {
                       </div>
                       <div className="flex items-center justify-between gap-2 ">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${item.item_status === "Active"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                            }`}
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            item.item_status === "Active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
                         >
                           {item.item_status}
                         </span>
-
-                        <EditItem ItemId={item.id} />
+                        {UserId != 3 && <EditItem ItemId={item.id} />}
                       </div>
                     </div>
-                    <Separator/>
-                 
+                    <Separator />
+
                     <div className="flex flex-row items-center justify-between">
                       {/* Category */}
                       <div className="flex items-center gap-2">
@@ -297,9 +297,20 @@ const ItemList = () => {
                           {item.item_weight}
                         </span>
                       </div>
+                      {UserId == 3 && (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-600">
+                              Branch Name:
+                            </span>
+                            <span className="text-xs font-medium text-gray-800">
+                              {item.branch_name}
+                            </span>
+                          </div>
+                        </>
+                      )}
                     </div>
                     {/* Action */}
-
                   </div>
                 </div>
               ))
@@ -310,7 +321,6 @@ const ItemList = () => {
             )}
           </div>
         </div>
-
 
         <div className="hidden sm:block">
           <div className="flex text-left text-2xl text-gray-800 font-[400]">
@@ -355,8 +365,11 @@ const ItemList = () => {
                     ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              <CreateItem />
+              {UserId != 3 && (
+                <>
+                  <CreateItem />
+                </>
+              )}{" "}
             </div>
           </div>
           {/* table  */}
@@ -374,9 +387,9 @@ const ItemList = () => {
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
                         </TableHead>
                       );
                     })}

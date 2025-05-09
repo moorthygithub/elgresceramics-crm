@@ -1,4 +1,14 @@
 import Page from "@/app/dashboard/page";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -25,16 +35,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import axios from "axios";
 import { ChevronDown, Edit, Search, SquarePlus, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -45,20 +45,20 @@ import {
   navigateToPurchaseEdit,
   PURCHASE_LIST,
 } from "@/api";
+import { encryptId } from "@/components/common/Encryption";
 import Loader from "@/components/loader/Loader";
+import StatusToggle from "@/components/toggle/StatusToggle";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ButtonConfig } from "@/config/ButtonConfig";
-import moment from "moment";
-import StatusToggle from "@/components/toggle/StatusToggle";
-import { useToast } from "@/hooks/use-toast";
 import BASE_URL from "@/config/BaseUrl";
+import { ButtonConfig } from "@/config/ButtonConfig";
+import { useToast } from "@/hooks/use-toast";
+import moment from "moment";
 import { RiWhatsappFill } from "react-icons/ri";
-import { encryptId } from "@/components/common/Encryption";
 
 const PurchaseList = () => {
   const {
@@ -164,14 +164,14 @@ const PurchaseList = () => {
     } = purchase;
 
     const itemLine = purchaseSub.map((item) => {
-      const size = item.purchase_sub_size.padEnd(10, " ");
+      const size = item.item_size.padEnd(10, " ");
       const box = item.purchase_sub_box.toString().padStart(4, " ");
       return `${size} ${box}`;
     });
 
     const itemLines = purchaseSub.map((item) => {
-      const name = item.purchase_sub_item.padEnd(25, " ");
-      const qty = `(${item.purchase_sub_category.replace(/\D/g, "")})`.padStart(
+      const name = item.item_name.padEnd(25, " ");
+      const qty = `(${item.item_category.replace(/\D/g, "")})`.padStart(
         6,
         " "
       );
@@ -180,7 +180,7 @@ const PurchaseList = () => {
 
     const totalQty = purchaseSub.reduce((sum, item) => {
       const qty =
-        parseInt(item.purchase_sub_category.replace(/\D/g, ""), 10) || 0;
+        parseInt(item.item_category.replace(/\D/g, ""), 10) || 0;
       return sum + qty;
     }, 0);
 
@@ -238,6 +238,15 @@ ${itemLines.map((line) => "  " + line).join("\n")}
       header: "Vehicle No",
       cell: ({ row }) => <div>{row.getValue("purchase_vehicle_no")}</div>,
     },
+    ...(UserId == 3
+      ? [
+          {
+            accessorKey: "branch_name",
+            header: "Branch Name",
+            cell: ({ row }) => <div>{row.getValue("branch_name")}</div>,
+          },
+        ]
+      : []),
 
     {
       accessorKey: "purchase_status",
@@ -264,24 +273,27 @@ ${itemLines.map((line) => "  " + line).join("\n")}
         const purchaseId = row.original.id;
         return (
           <div className="flex flex-row">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      navigateToPurchaseEdit(navigate, purchaseId);
-                    }}
-                  >
-                    <Edit />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Edit Purchase</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {UserId != 3 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        navigateToPurchaseEdit(navigate, purchaseId);
+                      }}
+                    >
+                      <Edit />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Edit Purchase</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+
             {UserId != 1 && (
               <TooltipProvider>
                 <Tooltip>
@@ -394,17 +406,19 @@ ${itemLines.map((line) => "  " + line).join("\n")}
             <h1 className="text-xl md:text-2xl text-gray-800 font-medium">
               Purchase List
             </h1>
-            <div>
-              <Button
-                variant="default"
-                className={`md:ml-2 bg-yellow-400 hover:bg-yellow-600 text-black rounded-l-full`}
-                onClick={() => {
-                  navigate("/purchase/create");
-                }}
-              >
-                <SquarePlus className="h-4 w-4 " /> Purchase
-              </Button>
-            </div>
+            {UserId != 3 && (
+              <div>
+                <Button
+                  variant="default"
+                  className={`md:ml-2 bg-yellow-400 hover:bg-yellow-600 text-black rounded-l-full`}
+                  onClick={() => {
+                    navigate("/purchase/create");
+                  }}
+                >
+                  <SquarePlus className="h-4 w-4 " /> Purchase
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col md:flex-row md:items-center py-4 gap-2">
@@ -454,15 +468,17 @@ ${itemLines.map((line) => "  " + line).join("\n")}
                             }}
                           />
                         </span>
-                        <button
-                          variant="ghost"
-                          className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
-                          onClick={() => {
-                            navigateToPurchaseEdit(navigate, item.id);
-                          }}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
+                        {UserId != 3 && (
+                          <button
+                            variant="ghost"
+                            className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
+                            onClick={() => {
+                              navigateToPurchaseEdit(navigate, item.id);
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        )}
                         {UserId != 1 && (
                           <button
                             variant="ghost"
@@ -567,6 +583,37 @@ ${itemLines.map((line) => "  " + line).join("\n")}
                           </span>
                         </div>
                       )}
+                      {UserId == 3 && (
+                        <>
+                          {item.branch_name && (
+                            <div className="inline-flex items-center bg-gray-100 rounded-full px-2 py-1">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="10"
+                                height="10"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="text-gray-600 mr-1"
+                              >
+                                <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+                                <path d="M13 5v2" />
+                                <path d="M13 17v2" />
+                                <path d="M13 11v2" />
+                              </svg>
+                              <span className="text-xs text-gray-700">
+                                <span className="text-[10px]">
+                                  Branch Name:
+                                </span>
+                                {item.branch_name}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -622,15 +669,19 @@ ${itemLines.map((line) => "  " + line).join("\n")}
                     ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button
-                variant="default"
-                className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
-                onClick={() => {
-                  navigate("/purchase/create");
-                }}
-              >
-                <SquarePlus className="h-4 w-4 mr-2" /> Purchase
-              </Button>{" "}
+              {UserId != 3 && (
+                <>
+                  <Button
+                    variant="default"
+                    className={`ml-2 ${ButtonConfig.backgroundColor} ${ButtonConfig.hoverBackgroundColor} ${ButtonConfig.textColor}`}
+                    onClick={() => {
+                      navigate("/purchase/create");
+                    }}
+                  >
+                    <SquarePlus className="h-4 w-4 mr-2" /> Purchase
+                  </Button>{" "}
+                </>
+              )}
             </div>
           </div>
           {/* table  */}

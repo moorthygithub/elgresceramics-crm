@@ -1,5 +1,2 @@
-//ace
-// const BASE_URL = "https://test.dfclogistics.online/public";
-// const BASE_URL = "https://elgresceramic.com/stockapi/public";
-const BASE_URL = "https://elgresceramic.in/kgstockapi/public";
+const BASE_URL = "https://elgresceramic.in/crmapi/public";
 export default BASE_URL;
