@@ -40,7 +40,7 @@ import {
   Trash2,
   View,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -99,6 +99,9 @@ const SalesList = () => {
   const UserId = localStorage.getItem("userType");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedDate, setSelectedDate] = useState(
+    moment().format("YYYY-MM-DD")
+  );
 
   const handleDeleteRow = (productId) => {
     setDeleteItemId(productId);
@@ -345,13 +348,33 @@ ${itemLines.map((line) => "  " + line).join("\n")}
       },
     },
   ];
-  const filteredItems =
-    sales?.filter((item) =>
-      item.sales_buyer_name.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
-  // Create the table instance
+
+  // const filteredItem = useMemo(() => {
+  //   if (!sales) return [];
+  //   return sales.filter((item) => {
+  //     const itemDate = moment(item.sales_date).format("YYYY-MM-DD");
+  //     return (
+  //       itemDate === selectedDate &&
+  //       item.sales_buyer_name.toLowerCase().includes(searchQuery.toLowerCase())
+  //     );
+  //   });
+  // }, [sales, selectedDate, searchQuery]);
+  const filteredItem = useMemo(() => {
+    if (!sales) return [];
+
+    return sales.filter((item) => {
+      const itemDate = moment(item.sales_date).format("YYYY-MM-DD");
+      const matchesDate = !selectedDate || itemDate === selectedDate;
+      const matchesSearch = item.sales_buyer_name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
+      return matchesDate && matchesSearch;
+    });
+  }, [sales, selectedDate, searchQuery]);
+
   const table = useReactTable({
-    data: sales || [],
+    data: filteredItem || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -435,11 +458,17 @@ ${itemLines.map((line) => "  " + line).join("\n")}
                 className="pl-8 bg-gray-50 border-gray-200 focus:border-gray-300 focus:ring-gray-200 w-full"
               />
             </div>
+            <Input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="pl-8 bg-gray-50 border-gray-200 focus:border-gray-300 focus:ring-gray-200 w-full"
+            />
           </div>
 
           <div className="space-y-3">
-            {filteredItems.length > 0 ? (
-              filteredItems.map((item, index) => (
+            {filteredItem.length > 0 ? (
+              filteredItem.map((item, index) => (
                 <div
                   key={item.id}
                   onClick={() => {
@@ -487,13 +516,26 @@ ${itemLines.map((line) => "  " + line).join("\n")}
                         {UserId != 1 && (
                           <button
                             variant="ghost"
-                            // className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
-                            onClick={() => handleDeleteRow(item.id)}
+                            type="button"
+                            onClick={() => {
+                              e.stopPropagation();
+                              handleDeleteRow(item.id);
+                            }}
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
                           </button>
                         )}
-                        {/* <EditItem ItemId={} /> */}
+                        <button
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFetchSalesById(encryptId(item.id));
+                          }}
+                          className="text-green-500"
+                          type="button"
+                        >
+                          <RiWhatsappFill className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
 
@@ -606,6 +648,12 @@ ${itemLines.map((line) => "  " + line).join("\n")}
 
             {/* Dropdown Menu & Sales Button */}
             <div className="flex flex-col md:flex-row md:ml-auto gap-2 w-full md:w-auto">
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="pl-8 bg-gray-50 border-gray-200 focus:border-gray-300 focus:ring-gray-200 w-full"
+              />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full md:w-auto">

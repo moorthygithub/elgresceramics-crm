@@ -466,13 +466,25 @@ ${itemLines.map((line) => "  " + line).join("\n")}
                         {UserId != 1 && (
                           <button
                             variant="ghost"
-                            // className={`px-2 py-1 bg-yellow-400 hover:bg-yellow-600 rounded-lg text-black text-xs`}
-                            onClick={() => handleDeleteRow(item.id)}
+                            onClick={() => {
+                              e.stopPropagation();
+                              handleDeleteRow(item.id);
+                            }}
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
                           </button>
                         )}
-                        {/* <EditItem ItemId={} /> */}
+                        <button
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFetchPurchaseById(encryptId(item.id));
+                          }}
+                          className="text-green-500"
+                          type="button"
+                        >
+                          <RiWhatsappFill className="h-4 w-4" />
+                        </button>{" "}
                       </div>
                     </div>
 
